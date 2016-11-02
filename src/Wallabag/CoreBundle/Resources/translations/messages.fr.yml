@@ -448,6 +448,7 @@ user:
         repeat_new_password_label: 'Confirmez votre nouveau mot de passe'
         plain_password_label: 'Mot de passe en clair'
         email_label: 'Adresse e-mail'
+        group: 'Groupe'
         enabled_label: 'Activé'
         locked_label: 'Bloqué'
         last_login_label: 'Dernière connexion'
