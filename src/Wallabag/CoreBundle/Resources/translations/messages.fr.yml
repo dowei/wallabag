@@ -32,6 +32,7 @@ menu:
         save_link: 'Sauvegarder un nouvel article'
         back_to_unread: 'Retour aux articles non lus'
         users_management: 'Gestion des utilisateurs'
+        groups_management: 'Gestion des groupes'
     top:
         add_new_entry: 'Sauvegarder un nouvel article'
         search: 'Rechercher'
@@ -430,6 +431,25 @@ developer:
             paragraph_8: "Si vous voulez toutes les méthodes de l'API, jetez un oeil <a href=\"%link%\">à la documentation de l'API</a>."
         back: 'Retour'
 
+group:
+    page_title: Gestion des groupes
+    new_group: Créer un nouveau group
+    edit_group: Éditer un nouveau groupe
+    description: Ici vous pouvez gérer vos groupes (création, mise à jour et suppression)
+    list:
+        actions: Actions
+        edit_action: Éditer
+        yes: Oui
+        no: Non
+        create_new_one: Créer un nouveau groupe
+    form:
+        name_label: 'Nom'
+        roles_label: 'Rôles'
+        save: Sauvegarder
+        delete: Supprimer
+        delete_confirm: Êtes-vous sur ?
+        back_to_list: Revenir à la liste
+
 user:
     page_title: Gestion des utilisateurs
     new_user: Créer un nouvel utilisateur
@@ -455,7 +475,7 @@ user:
         twofactor_label: Double authentification
         save: Sauvegarder
         delete: Supprimer
-        delete_confirm: Êtes-vous sûr?
+        delete_confirm: Êtes-vous sûr ?
         back_to_list: Revenir à la liste
 
 error:
@@ -505,3 +525,13 @@ flashes:
         notice:
             client_created: 'Nouveau client %name% créé'
             client_deleted: 'Client %name% supprimé'
+    user:
+        notice:
+            added: 'Utilisateur "%username%" ajouté'
+            updated: 'Utilisateur "%username%" mis à jour'
+            deleted: 'Utilisateur "%username%" supprim'
+    group:
+        notice:
+            added: 'Groupe "%name%" ajouté'
+            updated: 'Groupe "%name%" mis à jour'
+            deleted: 'Groupe "%name%" supprimé'

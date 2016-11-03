@@ -32,6 +32,7 @@ menu:
         # save_link: 'Save a link'
         back_to_unread: 'Okunmayan makalelere geri dön'
         # users_management: 'Users management'
+        # groups_management: 'Groups management'
     top:
         add_new_entry: 'Yeni bir makale ekle'
         search: 'Ara'
@@ -504,3 +505,13 @@ flashes:
         notice:
             # client_created: 'New client created.'
             # client_deleted: 'Client deleted'
+    # user:
+    #     notice:
+    #         added: 'User "%username%" added'
+    #         updated: 'User "%username%" updated'
+    #         deleted: 'User "%username%" deleted'
+    # group:
+    #     notice:
+    #         added: 'Group "%name%" added'
+    #         updated: 'Group "%name%" updated'
+    #         deleted: 'Group "%name%" deleted'
