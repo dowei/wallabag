@@ -2,9 +2,9 @@
 
 namespace Tests\Wallabag\ImportBundle\Consumer\AMQP;
 
+use Wallabag\CoreBundle\Entity\Entry;
 use Wallabag\ImportBundle\Consumer\RedisEntryConsumer;
 use Wallabag\UserBundle\Entity\User;
-use Wallabag\CoreBundle\Entity\Entry;
 
 class RedisEntryConsumerTest extends \PHPUnit_Framework_TestCase
 {
@@ -111,10 +111,19 @@ JSON;
             ->with(json_decode($body, true))
             ->willReturn($entry);
 
+        $dispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher
+            ->expects($this->once())
+            ->method('dispatch');
+
         $consumer = new RedisEntryConsumer(
             $em,
             $userRepository,
-            $import
+            $import,
+            $dispatcher
         );
 
         $res = $consumer->manage($body);
@@ -156,15 +165,24 @@ JSON;
             ->disableOriginalConstructor()
             ->getMock();
 
+        $dispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher
+            ->expects($this->never())
+            ->method('dispatch');
+
         $consumer = new RedisEntryConsumer(
             $em,
             $userRepository,
-            $import
+            $import,
+            $dispatcher
         );
 
         $res = $consumer->manage($body);
 
-        $this->assertFalse($res);
+        $this->assertTrue($res);
     }
 
     public function testMessageWithEntryProcessed()
@@ -211,10 +229,19 @@ JSON;
             ->with(json_decode($body, true))
             ->willReturn(null);
 
+        $dispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher
+            ->expects($this->never())
+            ->method('dispatch');
+
         $consumer = new RedisEntryConsumer(
             $em,
             $userRepository,
-            $import
+            $import,
+            $dispatcher
         );
 
         $res = $consumer->manage($body);

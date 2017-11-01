@@ -3,8 +3,8 @@
 namespace Wallabag\ApiBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 use Wallabag\ApiBundle\Entity\Client;
 use Wallabag\ApiBundle\Form\Type\ClientType;
 
@@ -19,7 +19,7 @@ class DeveloperController extends Controller
      */
     public function indexAction()
     {
-        $clients = $this->getDoctrine()->getRepository('WallabagApiBundle:Client')->findAll();
+        $clients = $this->getDoctrine()->getRepository('WallabagApiBundle:Client')->findByUser($this->getUser()->getId());
 
         return $this->render('@WallabagCore/themes/common/Developer/index.html.twig', [
             'clients' => $clients,
@@ -38,11 +38,11 @@ class DeveloperController extends Controller
     public function createClientAction(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
-        $client = new Client();
+        $client = new Client($this->getUser());
         $clientForm = $this->createForm(ClientType::class, $client);
         $clientForm->handleRequest($request);
 
-        if ($clientForm->isValid()) {
+        if ($clientForm->isSubmitted() && $clientForm->isValid()) {
             $client->setAllowedGrantTypes(['token', 'authorization_code', 'password', 'refresh_token']);
             $em->persist($client);
             $em->flush();
@@ -75,6 +75,10 @@ class DeveloperController extends Controller
      */
     public function deleteClientAction(Client $client)
     {
+        if (null === $this->getUser() || $client->getUser()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException('You can not access this client.');
+        }
+
         $em = $this->getDoctrine()->getManager();
         $em->remove($client);
         $em->flush();

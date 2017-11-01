@@ -8,8 +8,8 @@ During this documentation, we assume the release is `$LAST_WALLABAG_RELEASE`.
 
 #### Files to edit
 
-- `app/config/config.yml` (`wallabag_core.version`)
-- `CHANGELOG.md` (by using this command `github_changelog_generator --no-compare-link --header-label="# Changelog" --no-issues --no-pr-wo-labels --since-tag="1.9.2"`. [github-changelog-generator is available here](https://github.com/skywinder/github-changelog-generator))
+- `app/config/wallabag.yml` (`wallabag_core.version`)
+- `CHANGELOG.md` (by using this command `github-changes -o wallabag -r wallabag -k YOURGITHUBTOKEN --only-pulls --use-commit-body --title Changelog --date-format YYYY/MM/DD --between-tags 2.0.0-alpha.0...master -n 2.1.3`. [github-changes is available here](https://github.com/lalitkapoor/github-changes))
 
 #### Create release on GitHub
 
@@ -20,7 +20,20 @@ git checkout master
 git pull origin master
 git checkout -b release-$LAST_WALLABAG_RELEASE
 SYMFONY_ENV=prod composer up --no-dev
-git add --force composer.lock
+```
+
+- Update `.travis.yml` file and replace the composer line with this one:
+
+```diff
+script:
+-    - travis_wait bash composer install -o  --no-interaction --no-progress --prefer-dist
++    - travis_wait composer update --no-interaction --no-progress
+```
+
+- Then continue with these commands:
+
+```
+git add --force composer.lock .travis.yml
 git commit -m "Release wallabag $LAST_WALLABAG_RELEASE"
 git push origin release-$LAST_WALLABAG_RELEASE
 ```
@@ -34,7 +47,7 @@ make release master /tmp wllbg-release prod
 
 - [Create the new release on GitHub](https://github.com/wallabag/wallabag/releases/new). You have to upload on this page the package.
 - Delete the `release-$LAST_WALLABAG_RELEASE` branch and close the pull request (**DO NOT MERGE IT**).
-- Update the URL shortener (used on `wllbg.org` to generate links like `http://wllbg.org/latest-v2-package` or `http://wllbg.org/latest-v2`)
+- Update the URL shortener (used on `wllbg.org` to generate links like `https://wllbg.org/latest-v2-package` or `http://wllbg.org/latest-v2`)
 - Update [the downloads page](https://github.com/wallabag/wallabag.org/blob/master/content/pages/download.md) on the website (MD5 sum, release date)
 - Update Dockerfile https://github.com/wallabag/docker (and create a new tag)
 - Update wallabag.org website (downloads, releases and new blog post)

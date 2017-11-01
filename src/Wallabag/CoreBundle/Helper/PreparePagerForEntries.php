@@ -5,29 +5,38 @@ namespace Wallabag\CoreBundle\Helper;
 use Pagerfanta\Adapter\AdapterInterface;
 use Pagerfanta\Pagerfanta;
 use Symfony\Component\Routing\Router;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Wallabag\UserBundle\Entity\User;
 
 class PreparePagerForEntries
 {
-    private $user;
     private $router;
+    private $tokenStorage;
 
-    public function __construct(TokenStorage $token, Router $router)
+    public function __construct(TokenStorageInterface $tokenStorage, Router $router)
     {
-        $this->user = $token->getToken()->getUser();
+        $this->tokenStorage = $tokenStorage;
         $this->router = $router;
     }
 
     /**
      * @param AdapterInterface $adapter
-     * @param int              $page
+     * @param User             $user    If user isn't logged in, we can force it (like for rss)
      *
      * @return null|Pagerfanta
      */
-    public function prepare(AdapterInterface $adapter, $page = 1)
+    public function prepare(AdapterInterface $adapter, User $user = null)
     {
+        if (null === $user) {
+            $user = $this->tokenStorage->getToken() ? $this->tokenStorage->getToken()->getUser() : null;
+        }
+
+        if (null === $user || !is_object($user)) {
+            return;
+        }
+
         $entries = new Pagerfanta($adapter);
-        $entries->setMaxPerPage($this->user->getConfig()->getItemsPerPage());
+        $entries->setMaxPerPage($user->getConfig()->getItemsPerPage());
 
         return $entries;
     }

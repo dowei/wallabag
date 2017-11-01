@@ -23,12 +23,11 @@ dev: ## Install the latest dev version
 run: ## Run the wallabag built-in server
 	@php bin/console server:run --env=$(ENV)
 
-build: ## Run grunt
-	@grunt
+build: ## Run webpack
+	@npm run build:$(ENV)
 
 test: ## Launch wallabag testsuite
-	@if [ ! -d "vendor/phpunit" ]; then composer install; fi
-	@ant prepare && vendor/phpunit/phpunit/phpunit -v
+	@ant prepare && bin/simple-phpunit -v
 
 release: ## Create a package. Need a VERSION parameter (eg: `make release VERSION=master`).
 ifndef VERSION

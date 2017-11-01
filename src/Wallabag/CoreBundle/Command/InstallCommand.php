@@ -2,19 +2,17 @@
 
 namespace Wallabag\CoreBundle\Command;
 
+use Craue\ConfigBundle\Entity\Setting;
 use FOS\UserBundle\Event\UserEvent;
 use FOS\UserBundle\FOSUserEvents;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
-use Wallabag\CoreBundle\Entity\Config;
-use Craue\ConfigBundle\Entity\Setting;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class InstallCommand extends ContainerAwareCommand
 {
@@ -24,9 +22,9 @@ class InstallCommand extends ContainerAwareCommand
     protected $defaultInput;
 
     /**
-     * @var OutputInterface
+     * @var SymfonyStyle
      */
-    protected $defaultOutput;
+    protected $io;
 
     /**
      * @var array
@@ -40,7 +38,7 @@ class InstallCommand extends ContainerAwareCommand
     {
         $this
             ->setName('wallabag:install')
-            ->setDescription('Wallabag installer.')
+            ->setDescription('wallabag installer.')
             ->addOption(
                'reset',
                null,
@@ -53,41 +51,44 @@ class InstallCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->defaultInput = $input;
-        $this->defaultOutput = $output;
 
-        $output->writeln('<info>Installing Wallabag...</info>');
-        $output->writeln('');
+        $this->io = new SymfonyStyle($input, $output);
+
+        $this->io->title('Wallabag installer');
 
         $this
             ->checkRequirements()
             ->setupDatabase()
             ->setupAdmin()
             ->setupConfig()
+            ->runMigrations()
         ;
 
-        $output->writeln('<info>Wallabag has been successfully installed.</info>');
-        $output->writeln('<comment>Just execute `php bin/console server:run --env=prod` for using wallabag: http://localhost:8000</comment>');
+        $this->io->success('Wallabag has been successfully installed.');
+        $this->io->note('Just execute `php bin/console server:run --env=prod` for using wallabag: http://localhost:8000');
     }
 
     protected function checkRequirements()
     {
-        $this->defaultOutput->writeln('<info><comment>Step 1 of 4.</comment> Checking system requirements.</info>');
+        $this->io->section('Step 1 of 5: Checking system requirements.');
+
+        $doctrineManager = $this->getContainer()->get('doctrine')->getManager();
 
         $rows = [];
 
         // testing if database driver exists
         $fulfilled = true;
-        $label = '<comment>PDO Driver</comment>';
+        $label = '<comment>PDO Driver (%s)</comment>';
         $status = '<info>OK!</info>';
         $help = '';
 
         if (!extension_loaded($this->getContainer()->getParameter('database_driver'))) {
             $fulfilled = false;
             $status = '<error>ERROR!</error>';
-            $help = 'Database driver "'.$this->getContainer()->getParameter('database_driver').'" is not installed.';
+            $help = 'Database driver "' . $this->getContainer()->getParameter('database_driver') . '" is not installed.';
         }
 
-        $rows[] = [$label, $status, $help];
+        $rows[] = [sprintf($label, $this->getContainer()->getParameter('database_driver')), $status, $help];
 
         // testing if connection to the database can be etablished
         $label = '<comment>Database connection</comment>';
@@ -95,56 +96,84 @@ class InstallCommand extends ContainerAwareCommand
         $help = '';
 
         try {
-            $this->getContainer()->get('doctrine')->getManager()->getConnection()->connect();
+            $conn = $this->getContainer()->get('doctrine')->getManager()->getConnection();
+            $conn->connect();
         } catch (\Exception $e) {
             if (false === strpos($e->getMessage(), 'Unknown database')
-                && false === strpos($e->getMessage(), 'database "'.$this->getContainer()->getParameter('database_name').'" does not exist')) {
+                && false === strpos($e->getMessage(), 'database "' . $this->getContainer()->getParameter('database_name') . '" does not exist')) {
                 $fulfilled = false;
                 $status = '<error>ERROR!</error>';
-                $help = 'Can\'t connect to the database: '.$e->getMessage();
+                $help = 'Can\'t connect to the database: ' . $e->getMessage();
+            }
+        }
+
+        $rows[] = [$label, $status, $help];
+
+        // check MySQL & PostgreSQL version
+        $label = '<comment>Database version</comment>';
+        $status = '<info>OK!</info>';
+        $help = '';
+
+        // now check if MySQL isn't too old to handle utf8mb4
+        if ($conn->isConnected() && 'mysql' === $conn->getDatabasePlatform()->getName()) {
+            $version = $conn->query('select version()')->fetchColumn();
+            $minimalVersion = '5.5.4';
+
+            if (false === version_compare($version, $minimalVersion, '>')) {
+                $fulfilled = false;
+                $status = '<error>ERROR!</error>';
+                $help = 'Your MySQL version (' . $version . ') is too old, consider upgrading (' . $minimalVersion . '+).';
+            }
+        }
+
+        // testing if PostgreSQL > 9.1
+        if ($conn->isConnected() && 'postgresql' === $conn->getDatabasePlatform()->getName()) {
+            // return version should be like "PostgreSQL 9.5.4 on x86_64-apple-darwin15.6.0, compiled by Apple LLVM version 8.0.0 (clang-800.0.38), 64-bit"
+            $version = $doctrineManager->getConnection()->query('SELECT version();')->fetchColumn();
+
+            preg_match('/PostgreSQL ([0-9\.]+)/i', $version, $matches);
+
+            if (isset($matches[1]) & version_compare($matches[1], '9.2.0', '<')) {
+                $fulfilled = false;
+                $status = '<error>ERROR!</error>';
+                $help = 'PostgreSQL should be greater than 9.1 (actual version: ' . $matches[1] . ')';
             }
         }
 
         $rows[] = [$label, $status, $help];
 
         foreach ($this->functionExists as $functionRequired) {
-            $label = '<comment>'.$functionRequired.'</comment>';
+            $label = '<comment>' . $functionRequired . '</comment>';
             $status = '<info>OK!</info>';
             $help = '';
 
             if (!function_exists($functionRequired)) {
                 $fulfilled = false;
                 $status = '<error>ERROR!</error>';
-                $help = 'You need the '.$functionRequired.' function activated';
+                $help = 'You need the ' . $functionRequired . ' function activated';
             }
 
             $rows[] = [$label, $status, $help];
         }
 
-        $table = new Table($this->defaultOutput);
-        $table
-            ->setHeaders(['Checked', 'Status', 'Recommendation'])
-            ->setRows($rows)
-            ->render();
+        $this->io->table(['Checked', 'Status', 'Recommendation'], $rows);
 
         if (!$fulfilled) {
             throw new \RuntimeException('Some system requirements are not fulfilled. Please check output messages and fix them.');
         }
 
-        $this->defaultOutput->writeln('<info>Success! Your system can run Wallabag properly.</info>');
-
-        $this->defaultOutput->writeln('');
+        $this->io->success('Success! Your system can run wallabag properly.');
 
         return $this;
     }
 
     protected function setupDatabase()
     {
-        $this->defaultOutput->writeln('<info><comment>Step 2 of 4.</comment> Setting up database.</info>');
+        $this->io->section('Step 2 of 5: Setting up database.');
 
         // user want to reset everything? Don't care about what is already here
         if (true === $this->defaultInput->getOption('reset')) {
-            $this->defaultOutput->writeln('Droping database, creating database and schema, clearing the cache');
+            $this->io->text('Dropping database, creating database and schema, clearing the cache');
 
             $this
                 ->runCommand('doctrine:database:drop', ['--force' => true])
@@ -153,13 +182,13 @@ class InstallCommand extends ContainerAwareCommand
                 ->runCommand('cache:clear')
             ;
 
-            $this->defaultOutput->writeln('');
+            $this->io->newLine();
 
             return $this;
         }
 
         if (!$this->isDatabasePresent()) {
-            $this->defaultOutput->writeln('Creating database and schema, clearing the cache');
+            $this->io->text('Creating database and schema, clearing the cache');
 
             $this
                 ->runCommand('doctrine:database:create')
@@ -167,16 +196,13 @@ class InstallCommand extends ContainerAwareCommand
                 ->runCommand('cache:clear')
             ;
 
-            $this->defaultOutput->writeln('');
+            $this->io->newLine();
 
             return $this;
         }
 
-        $questionHelper = $this->getHelper('question');
-        $question = new ConfirmationQuestion('It appears that your database already exists. Would you like to reset it? (y/N)', false);
-
-        if ($questionHelper->ask($this->defaultInput, $this->defaultOutput, $question)) {
-            $this->defaultOutput->writeln('Droping database, creating database and schema');
+        if ($this->io->confirm('It appears that your database already exists. Would you like to reset it?', false)) {
+            $this->io->text('Dropping database, creating database and schema...');
 
             $this
                 ->runCommand('doctrine:database:drop', ['--force' => true])
@@ -184,9 +210,8 @@ class InstallCommand extends ContainerAwareCommand
                 ->runCommand('doctrine:schema:create')
             ;
         } elseif ($this->isSchemaPresent()) {
-            $question = new ConfirmationQuestion('Seems like your database contains schema. Do you want to reset it? (y/N)', false);
-            if ($questionHelper->ask($this->defaultInput, $this->defaultOutput, $question)) {
-                $this->defaultOutput->writeln('Droping schema and creating schema');
+            if ($this->io->confirm('Seems like your database contains schema. Do you want to reset it?', false)) {
+                $this->io->text('Dropping schema and creating schema...');
 
                 $this
                     ->runCommand('doctrine:schema:drop', ['--force' => true])
@@ -194,29 +219,27 @@ class InstallCommand extends ContainerAwareCommand
                 ;
             }
         } else {
-            $this->defaultOutput->writeln('Creating schema');
+            $this->io->text('Creating schema...');
 
             $this
                 ->runCommand('doctrine:schema:create')
             ;
         }
 
-        $this->defaultOutput->writeln('Clearing the cache');
+        $this->io->text('Clearing the cache...');
         $this->runCommand('cache:clear');
 
-        $this->defaultOutput->writeln('');
+        $this->io->newLine();
+        $this->io->text('<info>Database successfully setup.</info>');
 
         return $this;
     }
 
     protected function setupAdmin()
     {
-        $this->defaultOutput->writeln('<info><comment>Step 3 of 4.</comment> Administration setup.</info>');
+        $this->io->section('Step 3 of 5: Administration setup.');
 
-        $questionHelper = $this->getHelperSet()->get('question');
-        $question = new ConfirmationQuestion('Would you like to create a new admin user (recommended) ? (Y/n)', true);
-
-        if (!$questionHelper->ask($this->defaultInput, $this->defaultOutput, $question)) {
+        if (!$this->io->confirm('Would you like to create a new admin user (recommended)?', true)) {
             return $this;
         }
 
@@ -225,14 +248,13 @@ class InstallCommand extends ContainerAwareCommand
         $userManager = $this->getContainer()->get('fos_user.user_manager');
         $user = $userManager->createUser();
 
-        $question = new Question('Username (default: wallabag) :', 'wallabag');
-        $user->setUsername($questionHelper->ask($this->defaultInput, $this->defaultOutput, $question));
+        $user->setUsername($this->io->ask('Username', 'wallabag'));
 
-        $question = new Question('Password (default: wallabag) :', 'wallabag');
-        $user->setPlainPassword($questionHelper->ask($this->defaultInput, $this->defaultOutput, $question));
+        $question = new Question('Password', 'wallabag');
+        $question->setHidden(true);
+        $user->setPlainPassword($this->io->askQuestion($question));
 
-        $question = new Question('Email:', '');
-        $user->setEmail($questionHelper->ask($this->defaultInput, $this->defaultOutput, $question));
+        $user->setEmail($this->io->ask('Email', ''));
 
         $user->setEnabled(true);
         $user->addRole('ROLE_SUPER_ADMIN');
@@ -243,148 +265,20 @@ class InstallCommand extends ContainerAwareCommand
         $event = new UserEvent($user);
         $this->getContainer()->get('event_dispatcher')->dispatch(FOSUserEvents::USER_CREATED, $event);
 
-        $this->defaultOutput->writeln('');
+        $this->io->text('<info>Administration successfully setup.</info>');
 
         return $this;
     }
 
     protected function setupConfig()
     {
-        $this->defaultOutput->writeln('<info><comment>Step 4 of 4.</comment> Config setup.</info>');
+        $this->io->section('Step 4 of 5: Config setup.');
         $em = $this->getContainer()->get('doctrine.orm.entity_manager');
 
         // cleanup before insert new stuff
         $em->createQuery('DELETE FROM CraueConfigBundle:Setting')->execute();
 
-        $settings = [
-            [
-                'name' => 'share_public',
-                'value' => '1',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'carrot',
-                'value' => '1',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'share_diaspora',
-                'value' => '1',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'diaspora_url',
-                'value' => 'http://diasporapod.com',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'share_shaarli',
-                'value' => '1',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'shaarli_url',
-                'value' => 'http://myshaarli.com',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'share_mail',
-                'value' => '1',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'share_twitter',
-                'value' => '1',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'export_epub',
-                'value' => '1',
-                'section' => 'export',
-            ],
-            [
-                'name' => 'export_mobi',
-                'value' => '1',
-                'section' => 'export',
-            ],
-            [
-                'name' => 'export_pdf',
-                'value' => '1',
-                'section' => 'export',
-            ],
-            [
-                'name' => 'export_csv',
-                'value' => '1',
-                'section' => 'export',
-            ],
-            [
-                'name' => 'export_json',
-                'value' => '1',
-                'section' => 'export',
-            ],
-            [
-                'name' => 'export_txt',
-                'value' => '1',
-                'section' => 'export',
-            ],
-            [
-                'name' => 'export_xml',
-                'value' => '1',
-                'section' => 'export',
-            ],
-            [
-                'name' => 'import_with_redis',
-                'value' => '0',
-                'section' => 'import',
-            ],
-            [
-                'name' => 'import_with_rabbitmq',
-                'value' => '0',
-                'section' => 'import',
-            ],
-            [
-                'name' => 'show_printlink',
-                'value' => '1',
-                'section' => 'entry',
-            ],
-            [
-                'name' => 'wallabag_support_url',
-                'value' => 'https://www.wallabag.org/pages/support.html',
-                'section' => 'misc',
-            ],
-            [
-                'name' => 'wallabag_url',
-                'value' => 'http://v2.wallabag.org',
-                'section' => 'misc',
-            ],
-            [
-                'name' => 'piwik_enabled',
-                'value' => '0',
-                'section' => 'analytics',
-            ],
-            [
-                'name' => 'piwik_host',
-                'value' => 'v2.wallabag.org',
-                'section' => 'analytics',
-            ],
-            [
-                'name' => 'piwik_site_id',
-                'value' => '1',
-                'section' => 'analytics',
-            ],
-            [
-                'name' => 'demo_mode_enabled',
-                'value' => '0',
-                'section' => 'misc',
-            ],
-            [
-                'name' => 'demo_mode_username',
-                'value' => 'wallabag',
-                'section' => 'misc',
-            ],
-        ];
-
-        foreach ($settings as $setting) {
+        foreach ($this->getContainer()->getParameter('wallabag_core.default_internal_settings') as $setting) {
             $newSetting = new Setting();
             $newSetting->setName($setting['name']);
             $newSetting->setValue($setting['value']);
@@ -394,7 +288,19 @@ class InstallCommand extends ContainerAwareCommand
 
         $em->flush();
 
-        $this->defaultOutput->writeln('');
+        $this->io->text('<info>Config successfully setup.</info>');
+
+        return $this;
+    }
+
+    protected function runMigrations()
+    {
+        $this->io->section('Step 5 of 5: Run migrations.');
+
+        $this
+            ->runCommand('doctrine:migrations:migrate', ['--no-interaction' => true]);
+
+        $this->io->text('<info>Migrations successfully executed.</info>');
 
         return $this;
     }
@@ -425,19 +331,17 @@ class InstallCommand extends ContainerAwareCommand
         $output = new BufferedOutput();
         $exitCode = $this->getApplication()->run(new ArrayInput($parameters), $output);
 
-        if (0 !== $exitCode) {
-            $this->getApplication()->setAutoExit(true);
-
-            $this->defaultOutput->writeln('');
-            $this->defaultOutput->writeln('<error>The command "'.$command.'" generates some errors: </error>');
-            $this->defaultOutput->writeln($output->fetch());
-
-            die();
-        }
-
         // PDO does not always close the connection after Doctrine commands.
         // See https://github.com/symfony/symfony/issues/11750.
         $this->getContainer()->get('doctrine')->getManager()->getConnection()->close();
+
+        if (0 !== $exitCode) {
+            $this->getApplication()->setAutoExit(true);
+
+            throw new \RuntimeException(
+                'The command "' . $command . "\" generates some errors: \n\n"
+                . $output->fetch());
+        }
 
         return $this;
     }
@@ -480,7 +384,7 @@ class InstallCommand extends ContainerAwareCommand
         }
 
         try {
-            return in_array($databaseName, $schemaManager->listDatabases());
+            return in_array($databaseName, $schemaManager->listDatabases(), true);
         } catch (\Doctrine\DBAL\Exception\DriverException $e) {
             // it means we weren't able to get database list, assume the database doesn't exist
 

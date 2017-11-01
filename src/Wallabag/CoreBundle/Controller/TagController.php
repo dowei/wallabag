@@ -4,13 +4,13 @@ namespace Wallabag\CoreBundle\Controller;
 
 use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Exception\OutOfRangeCurrentPageException;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Wallabag\CoreBundle\Entity\Entry;
 use Wallabag\CoreBundle\Entity\Tag;
 use Wallabag\CoreBundle\Form\Type\NewTagType;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class TagController extends Controller
 {
@@ -27,8 +27,8 @@ class TagController extends Controller
         $form = $this->createForm(NewTagType::class, new Tag());
         $form->handleRequest($request);
 
-        if ($form->isValid()) {
-            $this->get('wallabag_core.content_proxy')->assignTagsToEntry(
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->get('wallabag_core.tags_assigner')->assignTagsToEntry(
                 $entry,
                 $form->get('label')->getData()
             );
@@ -65,12 +65,12 @@ class TagController extends Controller
         $em->flush();
 
         // remove orphan tag in case no entries are associated to it
-        if (count($tag->getEntries()) === 0) {
+        if (0 === count($tag->getEntries())) {
             $em->remove($tag);
             $em->flush();
         }
 
-        $redirectUrl = $this->get('wallabag_core.helper.redirect')->to($request->headers->get('referer'));
+        $redirectUrl = $this->get('wallabag_core.helper.redirect')->to($request->headers->get('referer'), '', true);
 
         return $this->redirect($redirectUrl);
     }
@@ -84,27 +84,11 @@ class TagController extends Controller
      */
     public function showTagAction()
     {
-        $tags = $this->getDoctrine()
-            ->getRepository('WallabagCoreBundle:Tag')
-            ->findAllTags($this->getUser()->getId());
-
-        $flatTags = [];
-
-        foreach ($tags as $key => $tag) {
-            $nbEntries = $this->getDoctrine()
-                ->getRepository('WallabagCoreBundle:Entry')
-                ->countAllEntriesByUserIdAndTagId($this->getUser()->getId(), $tag['id']);
-
-            $flatTags[] = [
-                'id' => $tag['id'],
-                'label' => $tag['label'],
-                'slug' => $tag['slug'],
-                'nbEntries' => $nbEntries,
-            ];
-        }
+        $tags = $this->get('wallabag_core.tag_repository')
+            ->findAllFlatTagsWithNbEntries($this->getUser()->getId());
 
         return $this->render('WallabagCoreBundle:Tag:tags.html.twig', [
-            'tags' => $flatTags,
+            'tags' => $tags,
         ]);
     }
 
@@ -119,14 +103,14 @@ class TagController extends Controller
      */
     public function showEntriesForTagAction(Tag $tag, $page, Request $request)
     {
-        $entriesByTag = $this->getDoctrine()
-            ->getRepository('WallabagCoreBundle:Entry')
-            ->findAllByTagId($this->getUser()->getId(), $tag->getId());
+        $entriesByTag = $this->get('wallabag_core.entry_repository')->findAllByTagId(
+            $this->getUser()->getId(),
+            $tag->getId()
+        );
 
         $pagerAdapter = new ArrayAdapter($entriesByTag);
 
-        $entries = $this->get('wallabag_core.helper.prepare_pager_for_entries')
-            ->prepare($pagerAdapter, $page);
+        $entries = $this->get('wallabag_core.helper.prepare_pager_for_entries')->prepare($pagerAdapter);
 
         try {
             $entries->setCurrentPage($page);
@@ -143,7 +127,7 @@ class TagController extends Controller
             'form' => null,
             'entries' => $entries,
             'currentPage' => $page,
-            'tag' => $tag->getLabel(),
+            'tag' => $tag,
         ]);
     }
 }

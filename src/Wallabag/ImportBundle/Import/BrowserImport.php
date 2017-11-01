@@ -3,8 +3,7 @@
 namespace Wallabag\ImportBundle\Import;
 
 use Wallabag\CoreBundle\Entity\Entry;
-use Wallabag\UserBundle\Entity\User;
-use Wallabag\CoreBundle\Helper\ContentProxy;
+use Wallabag\CoreBundle\Event\EntrySavedEvent;
 
 abstract class BrowserImport extends AbstractImport
 {
@@ -74,66 +73,6 @@ abstract class BrowserImport extends AbstractImport
     }
 
     /**
-     * Parse and insert all given entries.
-     *
-     * @param $entries
-     */
-    protected function parseEntries($entries)
-    {
-        $i = 1;
-
-        foreach ($entries as $importedEntry) {
-            if ((array) $importedEntry !== $importedEntry) {
-                continue;
-            }
-
-            $entry = $this->parseEntry($importedEntry);
-
-            if (null === $entry) {
-                continue;
-            }
-
-            // flush every 20 entries
-            if (($i % 20) === 0) {
-                $this->em->flush();
-            }
-            ++$i;
-        }
-
-        $this->em->flush();
-    }
-
-    /**
-     * Parse entries and send them to the queue.
-     * It should just be a simple loop on all item, no call to the database should be done
-     * to speedup queuing.
-     *
-     * Faster parse entries for Producer.
-     * We don't care to make check at this time. They'll be done by the consumer.
-     *
-     * @param array $entries
-     */
-    protected function parseEntriesForProducer(array $entries)
-    {
-        foreach ($entries as $importedEntry) {
-            if ((array) $importedEntry !== $importedEntry) {
-                continue;
-            }
-
-            // set userId for the producer (it won't know which user is connected)
-            $importedEntry['userId'] = $this->user->getId();
-
-            if ($this->markAsRead) {
-                $importedEntry = $this->setEntryAsRead($importedEntry);
-            }
-
-            ++$this->queuedEntries;
-
-            $this->producer->publish(json_encode($importedEntry));
-        }
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function parseEntry(array $importedEntry)
@@ -185,10 +124,10 @@ abstract class BrowserImport extends AbstractImport
         $entry->setTitle($data['title']);
 
         // update entry with content (in case fetching failed, the given entry will be return)
-        $entry = $this->fetchContent($entry, $data['url'], $data);
+        $this->fetchContent($entry, $data['url'], $data);
 
         if (array_key_exists('tags', $data)) {
-            $this->contentProxy->assignTagsToEntry(
+            $this->tagsAssigner->assignTagsToEntry(
                 $entry,
                 $data['tags']
             );
@@ -208,6 +147,82 @@ abstract class BrowserImport extends AbstractImport
     }
 
     /**
+     * Parse and insert all given entries.
+     *
+     * @param $entries
+     */
+    protected function parseEntries($entries)
+    {
+        $i = 1;
+        $entryToBeFlushed = [];
+
+        foreach ($entries as $importedEntry) {
+            if ((array) $importedEntry !== $importedEntry) {
+                continue;
+            }
+
+            $entry = $this->parseEntry($importedEntry);
+
+            if (null === $entry) {
+                continue;
+            }
+
+            // @see AbstractImport
+            $entryToBeFlushed[] = $entry;
+
+            // flush every 20 entries
+            if (0 === ($i % 20)) {
+                $this->em->flush();
+
+                foreach ($entryToBeFlushed as $entry) {
+                    $this->eventDispatcher->dispatch(EntrySavedEvent::NAME, new EntrySavedEvent($entry));
+                }
+
+                $entryToBeFlushed = [];
+            }
+            ++$i;
+        }
+
+        $this->em->flush();
+
+        if (!empty($entryToBeFlushed)) {
+            foreach ($entryToBeFlushed as $entry) {
+                $this->eventDispatcher->dispatch(EntrySavedEvent::NAME, new EntrySavedEvent($entry));
+            }
+        }
+    }
+
+    /**
+     * Parse entries and send them to the queue.
+     * It should just be a simple loop on all item, no call to the database should be done
+     * to speedup queuing.
+     *
+     * Faster parse entries for Producer.
+     * We don't care to make check at this time. They'll be done by the consumer.
+     *
+     * @param array $entries
+     */
+    protected function parseEntriesForProducer(array $entries)
+    {
+        foreach ($entries as $importedEntry) {
+            if ((array) $importedEntry !== $importedEntry) {
+                continue;
+            }
+
+            // set userId for the producer (it won't know which user is connected)
+            $importedEntry['userId'] = $this->user->getId();
+
+            if ($this->markAsRead) {
+                $importedEntry = $this->setEntryAsRead($importedEntry);
+            }
+
+            ++$this->queuedEntries;
+
+            $this->producer->publish(json_encode($importedEntry));
+        }
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function setEntryAsRead(array $importedEntry)
@@ -216,4 +231,6 @@ abstract class BrowserImport extends AbstractImport
 
         return $importedEntry;
     }
+
+    abstract protected function prepareEntry(array $entry = []);
 }

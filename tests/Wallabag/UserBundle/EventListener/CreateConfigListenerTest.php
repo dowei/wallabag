@@ -8,8 +8,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Wallabag\CoreBundle\Entity\Config;
-use Wallabag\UserBundle\EventListener\CreateConfigListener;
 use Wallabag\UserBundle\Entity\User;
+use Wallabag\UserBundle\EventListener\CreateConfigListener;
 
 class CreateConfigListenerTest extends \PHPUnit_Framework_TestCase
 {
@@ -31,6 +31,8 @@ class CreateConfigListenerTest extends \PHPUnit_Framework_TestCase
             20,
             50,
             'fr',
+            1,
+            1,
             1
         );
 

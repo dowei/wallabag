@@ -25,13 +25,14 @@ menu:
         internal_settings: "Configuration interne"
         import: "Importer"
         howto: "Aide"
-        developer: "Développeur"
+        developer: "Gestion des clients API"
         logout: "Déconnexion"
         about: "À propos"
         search: "Recherche"
         save_link: "Sauvegarder un nouvel article"
         back_to_unread: "Retour aux articles non lus"
         users_management: "Gestion des utilisateurs"
+        site_credentials: 'Accès aux sites'
     top:
         add_new_entry: "Sauvegarder un nouvel article"
         search: "Rechercher"
@@ -46,7 +47,7 @@ footer:
         social: "Social"
         powered_by: "propulsé par"
         about: "À propos"
-    stats: Depuis le %user_creation% vous avez lu %nb_archives% articles. Ce qui fait %per_day% par jour !
+    stats: "Depuis le %user_creation%, vous avez lu %nb_archives% articles. Ce qui fait %per_day% par jour !"
 
 config:
     page_title: "Configuration"
@@ -70,25 +71,52 @@ config:
             200_word: "Je lis environ 200 mots par minute"
             300_word: "Je lis environ 300 mots par minute"
             400_word: "Je lis environ 400 mots par minute"
-        pocket_consumer_key_label: Clé d’authentification Pocket pour importer les données
+        action_mark_as_read:
+            label: "Où souhaitez-vous être redirigé après avoir marqué un article comme lu ?"
+            redirect_homepage: "À la page d’accueil"
+            redirect_current_page: "À la page courante"
+        pocket_consumer_key_label: "Clé d’authentification Pocket pour importer les données"
+        android_configuration: "Configurez votre application Android"
+        android_instruction: "Appuyez ici pour préremplir votre application Android"
+        help_theme: "L’affichage de wallabag est personnalisable. C’est ici que vous choisissez le thème que vous préférez."
+        help_items_per_page: "Vous pouvez définir le nombre d’articles affichés sur chaque page."
+        help_reading_speed: "wallabag calcule une durée de lecture pour chaque article. Vous pouvez définir ici, grâce à cette liste déroulante, si vous lisez plus ou moins vite. wallabag recalculera la durée de lecture de chaque article."
+        help_language: "Vous pouvez définir la langue de l’interface de wallabag."
+        help_pocket_consumer_key: "Nécessaire pour l’import depuis Pocket. Vous pouvez le créer depuis votre compte Pocket."
     form_rss:
         description: "Les flux RSS fournis par wallabag vous permettent de lire vos articles sauvegardés dans votre lecteur de flux préféré. Pour pouvoir les utiliser, vous devez d’abord créer un jeton."
         token_label: "Jeton RSS"
         no_token: "Aucun jeton généré"
         token_create: "Créez votre jeton"
         token_reset: "Réinitialisez votre jeton"
-        rss_links: "Adresse de vos flux RSS"
+        rss_links: "Adresses de vos flux RSS"
         rss_link:
-            unread: "non lus"
-            starred: "favoris"
-            archive: "lus"
+            unread: "Non lus"
+            starred: "Favoris"
+            archive: "Lus"
+            all: "Tous"
         rss_limit: "Nombre d’articles dans le flux"
     form_user:
         two_factor_description: "Activer l’authentification double-facteur veut dire que vous allez recevoir un code par courriel à chaque nouvelle connexion non approuvée."
         name_label: "Nom"
         email_label: "Adresse courriel"
         twoFactorAuthentication_label: "Double authentification"
+        help_twoFactorAuthentication: "Si vous activez 2FA, à chaque tentative de connexion à wallabag, vous recevrez un code par email."
+        delete:
+            title: "Supprimer mon compte (attention danger !)"
+            description: "Si vous confirmez la suppression de votre compte, TOUS les articles, TOUS les tags, TOUTES les annotations et votre compte seront DÉFINITIVEMENT supprimé (c’est IRRÉVERSIBLE). Vous serez ensuite déconnecté."
+            confirm: "Vous êtes vraiment sûr ? (C’EST IRRÉVERSIBLE)"
+            button: "Supprimer mon compte"
+    reset:
+        title: "Réinitialisation (attention danger !)"
+        description: "En cliquant sur les boutons ci-dessous vous avez la possibilité de supprimer certaines informations de votre compte. Attention, ces actions sont IRRÉVERSIBLES !"
+        annotations: "Supprimer TOUTES les annotations"
+        tags: "Supprimer TOUS les tags"
+        entries: "Supprimer TOUS les articles"
+        archived: "Supprimer TOUS les articles archivés"
+        confirm: "Êtes-vous vraiment vraiment sûr ? (C’EST IRRÉVERSIBLE)"
     form_password:
+        description: "Vous pouvez changer ici votre mot de passe. Le mot de passe doit contenir au moins 8 caractères."
         old_password_label: "Mot de passe actuel"
         new_password_label: "Nouveau mot de passe"
         repeat_new_password_label: "Confirmez votre nouveau mot de passe"
@@ -121,7 +149,7 @@ config:
                 domainName: "Le nom de domaine de l’article"
             operator_description:
                 label: "Opérateur"
-                less_than: "Moins que…..."
+                less_than: "Moins que…"
                 strictly_less_than: "Strictement moins que…"
                 greater_than: "Plus que…"
                 strictly_greater_than: "Strictement plus que…"
@@ -130,6 +158,7 @@ config:
                 or: "Une règle OU l’autre"
                 and: "Une règle ET l’autre"
                 matches: "Teste si un <i>sujet</i> correspond à une <i>recherche</i> (non sensible à la casse).<br />Exemple : <code>title matches \"football\"</code>"
+                notmatches: "Teste si un <i>sujet</i> ne correspond pas à une <i>recherche</i> (non sensible à la casse).<br />Exemple : <code>title notmatches \"football\"</code>"
 
 entry:
     page_titles:
@@ -138,15 +167,17 @@ entry:
         archived: "Articles lus"
         filtered: "Articles filtrés"
         filtered_tags: "Articles filtrés par tags :"
+        filtered_search: "Articles filtrés par recherche :"
         untagged: "Article sans tag"
+        all: "Tous les articles"
     list:
-        number_on_the_page: "{0} Il n’y a pas d’articles.|{1} Il y a un article.|]1,Inf[ Il y a %count% articles."
+        number_on_the_page: "{0} Il n’y a pas d’article.|{1} Il y a un article.|]1,Inf[ Il y a %count% articles."
         reading_time: "durée de lecture"
         reading_time_minutes: "durée de lecture: %readingTime% min"
-        reading_time_less_one_minute: "durée de lecture: <small class=\"inferieur\">&lt;</small> 1 min"
+        reading_time_less_one_minute: "durée de lecture: &lt; 1 min"
         number_of_tags: "{1}et un autre tag|]1,Inf[et %count% autres tags"
         reading_time_minutes_short: "%readingTime% min"
-        reading_time_less_one_minute_short: "<small class=\"inferieur\">&lt;</small> 1 min"
+        reading_time_less_one_minute_short: "&lt; 1 min"
         original_article: "original"
         toogle_as_read: "Marquer comme lu/non lu"
         toogle_as_star: "Marquer comme favori"
@@ -160,7 +191,10 @@ entry:
         unread_label: "Non lus"
         preview_picture_label: "A une photo"
         preview_picture_help: "Photo"
+        is_public_label: 'A un lien public'
+        is_public_help: 'Lien public'
         language_label: "Langue"
+        http_status_label: "Statut HTTP"
         reading_time:
             label: "Durée de lecture en minutes"
             from: "de"
@@ -188,7 +222,7 @@ entry:
             share_email_label: "Courriel"
             public_link: "Lien public"
             delete_public_link: "Supprimer le lien public"
-            download: "Télécharger"
+            export: "Exporter"
             print: "Imprimer"
             problem:
                 label: "Un problème ?"
@@ -197,19 +231,25 @@ entry:
         original_article: "original"
         annotations_on_the_entry: "{0} Aucune annotation|{1} Une annotation|]1,Inf[ %count% annotations"
         created_at: "Date de création"
+        published_at: "Date de publication"
+        published_by: "Publié par"
     new:
         page_title: "Sauvegarder un nouvel article"
         placeholder: "http://website.com"
         form_new:
             url_label: "Adresse"
+    search:
+        placeholder: "Que recherchez-vous ?"
     edit:
         page_title: "Éditer un article"
         title_label: "Titre"
         url_label: "Adresse"
-        is_public_label: "Public"
         save_label: "Enregistrer"
     public:
-        shared_by_wallabag: "Cet article a été partagé par <a href=\"%wallabag_instance%\">wallabag</a>"
+        shared_by_wallabag: "Cet article a été partagé par %username% avec <a href=\"%wallabag_instance%\">wallabag</a>"
+    confirm:
+        delete: "Voulez-vous vraiment supprimer cet article ?"
+        delete_tag: "Voulez-vous vraiment supprimer ce tag de cet article ?"
 
 about:
     page_title: "À propos"
@@ -229,7 +269,7 @@ about:
     getting_help:
         documentation: "Documentation"
         bug_reports: "Rapport de bogue"
-        support: "<a href=\"https://support.wallabag.org\">Sur notre site de support</a> ou <a href=\"https://github.com/wallabag/wallabag/issues\">sur GitHub</a>"
+        support: "<a href=\"https://github.com/wallabag/wallabag/issues\">sur GitHub</a>"
     helping:
         description: "wallabag est gratuit et opensource. Vous pouvez nous aider :"
         by_contributing: "en contribuant au projet :"
@@ -244,6 +284,9 @@ about:
 
 howto:
     page_title: "Aide"
+    tab_menu:
+        add_link: "Ajouter un lien"
+        shortcuts: "Utiliser les raccourcis"
     page_description: "Il y a plusieurs façon d’enregistrer un article :"
     top_menu:
         browser_addons: "Extensions de navigateur"
@@ -254,6 +297,7 @@ howto:
     browser_addons:
         firefox: "Extension Firefox"
         chrome: "Extension Chrome"
+        opera: "Extension Opera"
     mobile_apps:
         android:
             via_f_droid: "via F-Droid"
@@ -262,6 +306,33 @@ howto:
         windows: "sur Microsoft Store"
     bookmarklet:
         description: "Glissez et déposez ce lien dans votre barre de favoris :"
+    shortcuts:
+        page_description: "Voici les raccourcis disponibles dans wallabag."
+        shortcut: "Raccourci"
+        action: "Action"
+        all_pages_title: "Raccourcis disponibles dans toutes les pages"
+        go_unread: "Afficher les articles non lus"
+        go_starred: "Afficher les articles favoris"
+        go_archive:  "Afficher les articles lus"
+        go_all: "Afficher tous les articles"
+        go_tags: "Afficher les tags"
+        go_config: "Aller à la configuration"
+        go_import: "Aller aux imports"
+        go_developers: "Aller à la section Développeurs"
+        go_howto: "Afficher l’aide (cette page !)"
+        go_logout: "Se déconnecter"
+        list_title: "Raccourcis disponibles dans les pages de liste"
+        search: "Afficher le formulaire de recherche"
+        article_title: "Raccourcis disponibles quand on affiche un article"
+        open_original: "Ouvrir l’URL originale de l’article"
+        toggle_favorite: "Changer le statut Favori de l’article"
+        toggle_archive: "Changer le status Lu de l’article"
+        delete: "Supprimer l’article"
+        material_title: "Raccourcis disponibles avec le thème Material uniquement"
+        add_link: "Ajouter un nouvel article"
+        hide_form: "Masquer le formulaire courant (recherche ou nouvel article)"
+        arrows_navigation: "Naviguer à travers les articles"
+        open_article: "Afficher l’article sélectionné"
 
 quickstart:
     page_title: "Pour bien débuter"
@@ -279,9 +350,9 @@ quickstart:
     admin:
         title: "Administration"
         description: "En tant qu’administrateur sur wallabag, vous avez des privilèges qui vous permettent de :"
-        new_user: "Créer un nouvel utilisateur"
-        analytics: "Configurer les statistiques"
-        sharing: "Activer des paramètres de partages"
+        new_user: "Créez un nouvel utilisateur"
+        analytics: "Configurez les statistiques"
+        sharing: "Activez des paramètres de partage"
         export: "Configurer les formats d’export"
         import: "Configurer l’import"
     first_steps:
@@ -290,22 +361,22 @@ quickstart:
         new_article: "Ajoutez votre premier article"
         unread_articles: "Et rangez-le !"
     migrate:
-        title: "Migrer depuis un service existant"
+        title: "Migrez depuis un service existant"
         description: "Vous êtes un ancien utilisateur d’un service existant ? Nous allons vous aider à récupérer vos données sur wallabag."
-        pocket: "Migrer depuis Pocket"
-        wallabag_v1: "Migrer depuis wallabag v1"
-        wallabag_v2: "Migrer depuis wallabag v2"
-        readability: "Migrer depuis Readability"
-        instapaper: "Migrer depuis Instapaper"
+        pocket: "Migrez depuis Pocket"
+        wallabag_v1: "Migrez depuis wallabag v1"
+        wallabag_v2: "Migrez depuis wallabag v2"
+        readability: "Migrez depuis Readability"
+        instapaper: "Migrez depuis Instapaper"
     developer:
         title: "Pour les développeurs"
         description: "Nous avons aussi pensé aux développeurs : Docker, API, traductions, etc."
-        create_application: "Créer votre application tierce"
-        use_docker: "Utiliser Docker pour installer wallabag"
+        create_application: "Créez votre application tierce"
+        use_docker: "Utilisez Docker pour installer wallabag"
     docs:
         title: "Documentation complète"
         description: "Il y a tellement de fonctionnalités dans wallabag. N’hésitez pas à lire le manuel pour les connaitre et apprendre comment les utiliser."
-        annotate: "Annoter votre article"
+        annotate: "Annotez votre article"
         export: "Convertissez vos articles en ePub ou en PDF"
         search_filters: "Apprenez à utiliser le moteur de recherche et les filtres pour retrouver l’article qui vous intéresse"
         fetching_errors: "Que faire si mon article n’est pas correctement récupéré ?"
@@ -322,6 +393,12 @@ tag:
     list:
         number_on_the_page: "{0} Il n’y a pas de tag.|{1} Il y a un tag.|]1,Inf[ Il y a %count% tags."
         see_untagged_entries: "Voir les articles sans tag"
+    new:
+        add: "Ajouter"
+        placeholder: "Vous pouvez ajouter plusieurs tags, séparés par une virgule."
+
+export:
+    footer_template: '<div style="text-align:center;"><p>Généré par wallabag with %method%</p><p>Merci d''ouvrir <a href="https://github.com/wallabag/wallabag/issues">un ticket</a> si vous rencontrez des soucis d''affichage avec ce document sur votre support.</p></div>'
 
 import:
     page_title: "Importer"
@@ -355,9 +432,10 @@ import:
         how_to: "Choisissez le fichier de votre export Readability et cliquez sur le bouton ci-dessous pour l’importer."
     worker:
         enabled: "Les imports sont asynchrones. Une fois l’import commencé un worker externe traitera les messages un par un. Le service activé est :"
+        download_images_warning: "Vous avez configuré le téléchagement des images pour vos articles. Combiné à l’import classique, cette opération peut être très très longue (voire échouer). Nous vous conseillons <strong>vivement</strong> d’activer les imports asynchrones."
     firefox:
         page_title: "Import > Firefox"
-        description: "Cet outil va vous permettre d’importer tous vos marques-pages de Firefox. Ouvrez le panneau des marques-pages (Ctrl+Maj+O), puis dans « Importation et sauvegarde », choisissez « Sauvegarde... ». Vous allez récupérer un fichier .json. </p>"
+        description: "Cet outil va vous permettre d’importer tous vos marques-pages de Firefox. Ouvrez le panneau des marques-pages (Ctrl+Maj+O), puis dans « Importation et sauvegarde », choisissez « Sauvegarde… ». Vous allez récupérer un fichier .json. </p>"
         how_to: "Choisissez le fichier de sauvegarde de vos marques-page et cliquez sur le bouton pour l’importer. Soyez avertis que le processus peut prendre un temps assez long car tous les articles doivent être récupérés en ligne."
     chrome:
         page_title: "Import > Chrome"
@@ -367,9 +445,13 @@ import:
         page_title: "Import > Instapaper"
         description: "Sur la page des paramètres (https://www.instapaper.com/user), cliquez sur « Download .CSV file » dans la section « Export ». Un fichier CSV sera téléchargé (« instapaper-export.csv »)."
         how_to: "Choisissez le fichier de votre export Instapaper et cliquez sur le bouton ci-dessous pour l’importer."
+    pinboard:
+        page_title: "Import > Pinboard"
+        description: "Sur la page « Backup » (https://pinboard.in/settings/backup), cliquez sur « JSON » dans la section « Bookmarks ». Un fichier json (sans extension) sera téléchargé (« pinboard_export »)."
+        how_to: "Choisissez le fichier de votre export Pinboard et cliquez sur le bouton ci-dessous pour l’importer."
 
 developer:
-    page_title: "Développeur"
+    page_title: "Gestion des clients API"
     welcome_message: "Bienvenue sur l’API de wallabag"
     documentation: "Documentation"
     how_to_first_app: "Comment créer votre première application"
@@ -390,7 +472,7 @@ developer:
         warn_message_2: "Si vous supprimez le client %name%, toutes les applications qui l’utilisaient ne fonctionneront plus avec votre compte wallabag."
         action: "Supprimer le client %name%"
     client:
-        page_title: "Développeur > Nouveau client"
+        page_title: "Gestion des clients API > Nouveau client"
         page_description: "Vous allez créer un nouveau client. Merci de remplir l’adresse de redirection vers votre application."
         form:
             name_label: "Nom du client"
@@ -398,7 +480,7 @@ developer:
             save_label: "Créer un nouveau client"
         action_back: "Retour"
     client_parameter:
-        page_title: "Développeur > Les paramètres de votre client"
+        page_title: "Gestion des clients API > Les paramètres de votre client"
         page_description: "Voilà les paramètres de votre client"
         field_name: "Nom du client"
         field_id: "ID client"
@@ -406,7 +488,7 @@ developer:
         back: "Retour"
         read_howto: "Lire « comment créer ma première application »"
     howto:
-        page_title: "Développeur > Comment créer votre première application"
+        page_title: "Gestion des clients API > Comment créer votre première application"
         description:
             paragraph_1: "Les commandes suivantes utilisent la <a href=\"https://github.com/jkbrzt/httpie\">librarie HTTPie</a>. Assurez-vous qu’elle soit installée avant de l’utiliser."
             paragraph_2: "Vous avez besoin d’un token pour échanger entre votre application et l’API de wallabag."
@@ -419,16 +501,16 @@ developer:
         back: "Retour"
 
 user:
-    page_title: Gestion des utilisateurs
-    new_user: Créer un nouvel utilisateur
-    edit_user: Éditer un utilisateur existant
-    description: Ici vous pouvez gérer vos utilisateurs (création, mise à jour et suppression)
+    page_title: "Gestion des utilisateurs"
+    new_user: "Créer un nouvel utilisateur"
+    edit_user: "Éditer un utilisateur existant"
+    description: "Ici vous pouvez gérer vos utilisateurs (création, mise à jour et suppression)"
     list:
-        actions: Actions
-        edit_action: Éditer
-        yes: Oui
-        no: Non
-        create_new_one: Créer un nouvel utilisateur
+        actions: "Actions"
+        edit_action: "Éditer"
+        yes: "Oui"
+        no: "Non"
+        create_new_one: "Créer un nouvel utilisateur"
     form:
         username_label: "Nom d’utilisateur"
         name_label: "Nom"
@@ -437,32 +519,56 @@ user:
         plain_password_label: "Mot de passe en clair"
         email_label: "Adresse courriel"
         enabled_label: "Activé"
-        locked_label: "Bloqué"
         last_login_label: "Dernière connexion"
         twofactor_label: "Double authentification"
         save: "Sauvegarder"
         delete: "Supprimer"
-        delete_confirm: "Voulez-vous vraiment ?"
+        delete_confirm: "Êtes-vous sûr ?"
+        back_to_list: "Revenir à la liste"
+    search:
+        placeholder: "Filtrer par nom d’utilisateur ou email"
+
+site_credential:
+    page_title: Gestion des accès aux sites
+    new_site_credential: Créer un accès à un site
+    edit_site_credential: Éditer l'accès d'un site
+    description: "Ici vous pouvez gérer les accès aux différents sites. Ces accès permettent de récupérer des contenus sur des sites qui requièrent une authentification ou un paywall"
+    list:
+        actions: Actions
+        edit_action: Éditer
+        yes: Oui
+        no: Non
+        create_new_one: Créer un nouvel accès à un site
+    form:
+        username_label: 'Identifiant'
+        host_label: 'Domaine'
+        password_label: 'Mot de passe'
+        save: "Sauvegarder"
+        delete: "Supprimer"
+        delete_confirm: "Êtes-vous sûr ?"
         back_to_list: "Revenir à la liste"
 
 error:
-    page_title: Une erreur est survenue
+    page_title: "Une erreur est survenue"
 
 flashes:
     config:
         notice:
-            config_saved: "Les paramètres ont bien été mis à jour. Certains seront pris en compte après déconnexion."
+            config_saved: "Les paramètres ont bien été mis à jour."
             password_updated: "Votre mot de passe a bien été mis à jour"
             password_not_updated_demo: "En démo, vous ne pouvez pas changer le mot de passe de cet utilisateur."
             user_updated: "Vos informations personnelles ont bien été mises à jour"
             rss_updated: "La configuration des flux RSS a bien été mise à jour"
             tagging_rules_updated: "Règles mises à jour"
             tagging_rules_deleted: "Règle supprimée"
-            user_added: "Utilisateur \"%username%\" ajouté"
             rss_token_updated: "Jeton RSS mis à jour"
+            annotations_reset: "Annotations supprimées"
+            tags_reset: "Tags supprimés"
+            entries_reset: "Articles supprimés"
+            archived_reset: "Articles archivés supprimés"
     entry:
         notice:
-            entry_already_saved: "Article déjà sauvergardé le %date%"
+            entry_already_saved: "Article déjà sauvegardé le %date%"
             entry_saved: "Article enregistré"
             entry_saved_failed: "Article enregistré mais impossible de récupérer le contenu"
             entry_updated: "Article mis à jour"
@@ -489,3 +595,13 @@ flashes:
         notice:
             client_created: "Nouveau client %name% créé"
             client_deleted: "Client %name% supprimé"
+    user:
+        notice:
+            added: 'Utilisateur "%username%" ajouté'
+            updated: 'Utilisateur "%username%" mis à jour'
+            deleted: 'Utilisateur "%username%" supprimé'
+    site_credential:
+        notice:
+            added: 'Accès au site "%host%" ajouté'
+            updated: 'Accès au site "%host%" mis à jour'
+            deleted: 'Accès au site "%host%" supprimé'

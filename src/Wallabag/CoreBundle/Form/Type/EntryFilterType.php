@@ -3,16 +3,18 @@
 namespace Wallabag\CoreBundle\Form\Type;
 
 use Doctrine\ORM\EntityRepository;
-use Lexik\Bundle\FormFilterBundle\Filter\Query\QueryInterface;
-use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\NumberRangeFilterType;
-use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\DateRangeFilterType;
-use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\TextFilterType;
+use Lexik\Bundle\FormFilterBundle\Filter\FilterOperands;
 use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\CheckboxFilterType;
 use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\ChoiceFilterType;
+use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\DateRangeFilterType;
+use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\NumberRangeFilterType;
+use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\TextFilterType;
+use Lexik\Bundle\FormFilterBundle\Filter\Query\QueryInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class EntryFilterType extends AbstractType
 {
@@ -22,19 +24,32 @@ class EntryFilterType extends AbstractType
     /**
      * Repository & user are used to get a list of language entries for this user.
      *
-     * @param EntityRepository $entryRepository
-     * @param TokenStorage     $token
+     * @param EntityRepository      $entryRepository
+     * @param TokenStorageInterface $tokenStorage
      */
-    public function __construct(EntityRepository $entryRepository, TokenStorage $token)
+    public function __construct(EntityRepository $entryRepository, TokenStorageInterface $tokenStorage)
     {
         $this->repository = $entryRepository;
-        $this->user = $token->getToken()->getUser();
+
+        $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
+
+        if (null === $this->user || !is_object($this->user)) {
+            return;
+        }
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add('readingTime', NumberRangeFilterType::class, [
+                'left_number_options' => [
+                    'condition_operator' => FilterOperands::OPERATOR_GREATER_THAN_EQUAL,
+                    'attr' => ['min' => 0],
+                ],
+                'right_number_options' => [
+                    'condition_operator' => FilterOperands::OPERATOR_LOWER_THAN_EQUAL,
+                    'attr' => ['min' => 0],
+                ],
                 'apply_filter' => function (QueryInterface $filterQuery, $field, $values) {
                     $lower = $values['value']['left_number'][0];
                     $upper = $values['value']['right_number'][0];
@@ -84,11 +99,26 @@ class EntryFilterType extends AbstractType
                     if (strlen($value) <= 2 || empty($value)) {
                         return;
                     }
-                    $expression = $filterQuery->getExpr()->like($field, $filterQuery->getExpr()->literal('%'.$value.'%'));
+                    $expression = $filterQuery->getExpr()->like($field, $filterQuery->getExpr()->lower($filterQuery->getExpr()->literal('%' . $value . '%')));
 
                     return $filterQuery->createCondition($expression);
                 },
                 'label' => 'entry.filters.domain_label',
+            ])
+            ->add('httpStatus', TextFilterType::class, [
+                'apply_filter' => function (QueryInterface $filterQuery, $field, $values) {
+                    $value = $values['value'];
+                    if (false === array_key_exists($value, Response::$statusTexts)) {
+                        return;
+                    }
+
+                    $paramName = sprintf('%s', str_replace('.', '_', $field));
+                    $expression = $filterQuery->getExpr()->eq($field, ':' . $paramName);
+                    $parameters = [$paramName => $value];
+
+                    return $filterQuery->createCondition($expression, $parameters);
+                },
+                'label' => 'entry.filters.http_status_label',
             ])
             ->add('isArchived', CheckboxFilterType::class, [
                 'label' => 'entry.filters.archived_label',
@@ -119,6 +149,20 @@ class EntryFilterType extends AbstractType
                     return $filterQuery->createCondition($expression);
                 },
                 'label' => 'entry.filters.preview_picture_label',
+            ])
+            ->add('isPublic', CheckboxFilterType::class, [
+                'apply_filter' => function (QueryInterface $filterQuery, $field, $values) {
+                    if (false === $values['value']) {
+                        return;
+                    }
+
+                    // is_public isn't a real field
+                    // we should use the "uid" field to determine if the entry has been made public
+                    $expression = $filterQuery->getExpr()->isNotNull($values['alias'] . '.uid');
+
+                    return $filterQuery->createCondition($expression);
+                },
+                'label' => 'entry.filters.is_public_label',
             ])
             ->add('language', ChoiceFilterType::class, [
                 'choices' => array_flip($this->repository->findDistinctLanguageByUser($this->user->getId())),

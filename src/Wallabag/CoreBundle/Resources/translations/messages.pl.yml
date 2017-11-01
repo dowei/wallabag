@@ -25,13 +25,14 @@ menu:
         internal_settings: 'Wewnętrzne ustawienia'
         import: 'Importuj'
         howto: 'Howto'
-        developer: 'Deweloper'
+        developer: 'Zarządzanie klientami API'
         logout: 'Wyloguj'
         about: 'O nas'
         search: 'Szukaj'
         save_link: 'Zapisz link'
         back_to_unread: 'Powrót do nieprzeczytanych artykułów'
         users_management: 'Zarządzanie użytkownikami'
+        site_credentials: 'Poświadczenia strony'
     top:
         add_new_entry: 'Dodaj nowy wpis'
         search: 'Szukaj'
@@ -61,7 +62,7 @@ config:
         save: 'Zapisz'
     form_settings:
         theme_label: 'Temat'
-        items_per_page_label: 'Ilość elementóœ na stronie'
+        items_per_page_label: 'Ilość elementów na stronie'
         language_label: 'Język'
         reading_speed:
             label: 'Prędkość czytania'
@@ -70,25 +71,52 @@ config:
             200_word: 'Czytam ~200 słów na minutę'
             300_word: 'Czytam ~300 słów na minutę'
             400_word: 'Czytam ~400 słów na minutę'
+        action_mark_as_read:
+            label: 'Gdzie zostaniesz przekierowany po oznaczeniu artukuły jako przeczytanego'
+            redirect_homepage: 'do strony głównej'
+            redirect_current_page: 'do bieżącej strony'
         pocket_consumer_key_label: 'Klucz klienta Pocket do importu zawartości'
+        android_configuration: Skonfiguruj swoją androidową aplikację
+        android_instruction: "Dotknij tutaj, aby wstępnie uzupełnij androidową aplikację"
+        help_theme: "Dopasuj wallabag do swoich potrzeb. Tutaj możesz wybrać preferowany przez ciebie motyw."
+        help_items_per_page: "Możesz zmienić ilość artykułów wyświetlanych na każdej stronie."
+        help_reading_speed: "wallabag oblicza czas czytania każdego artykułu. Dzięki tej liście możesz określić swoje tempo. Wallabag przeliczy ponownie czas potrzebny, na przeczytanie każdego z artykułów."
+        help_language: "Możesz zmienić język interfejsu wallabag."
+        help_pocket_consumer_key: "Wymagane dla importu z Pocket. Możesz go stworzyć na swoim koncie Pocket."
     form_rss:
-        description: 'Kanały RSS prowadzone przez wallabag pozwalają Ci na czytanie twoich zapisanych artykułów w twoium ulubionym czytniku RSS. Musisz najpierw wynegenerować tokena.‌'
+        description: 'Kanały RSS prowadzone przez wallabag pozwalają Ci na czytanie twoich zapisanych artykułów w twoim ulubionym czytniku RSS. Musisz najpierw wynegenerować tokena.‌'
         token_label: 'Token RSS'
         no_token: 'Brak tokena'
         token_create: 'Stwórz tokena'
         token_reset: 'Zresetuj swojego tokena'
         rss_links: 'RSS links'
         rss_link:
-            unread: 'nieprzeczytane'
-            starred: 'oznaczone gwiazdką'
-            archive: 'archiwum'
+            unread: 'Nieprzeczytane'
+            starred: 'Oznaczone gwiazdką'
+            archive: 'Archiwum'
+            all: 'Wszystkie'
         rss_limit: 'Link do RSS'
     form_user:
-        two_factor_description: "Włączenie autoryzacji dwuetapowej oznacza, że będziesz otrzymywał maile z kodem przy każdym nowym, niezaufanyum połączeniu"
+        two_factor_description: "Włączenie autoryzacji dwuetapowej oznacza, że będziesz otrzymywał maile z kodem przy każdym nowym, niezaufanym połączeniu"
         name_label: 'Nazwa'
         email_label: 'Adres email'
         twoFactorAuthentication_label: 'Autoryzacja dwuetapowa'
+        help_twoFactorAuthentication: "Jeżeli włączysz autoryzację dwuetapową. Za każdym razem, kiedy będziesz chciał się zalogować, dostaniesz kod na swój e-mail."
+        delete:
+            title: Usuń moje konto (niebezpieczna strefa !)
+            description: Jeżeli usuniesz swoje konto, wszystkie twoje artykuły, tagi, adnotacje, oraz konto zostaną trwale usunięte (operacja jest NIEODWRACALNA). Następnie zostaniesz wylogowany.
+            confirm: Jesteś pewien? (tej operacji NIE MOŻNA cofnąć)
+            button: Usuń moje konto
+    reset:
+        title: Reset (niebezpieczna strefa)
+        description: Poniższe przyciski pozwalają usunąć pewne informacje z twojego konta. Uważaj te operacje są NIEODWRACALNE.
+        annotations: Usuń WSZYSTKIE adnotacje
+        tags: Usuń WSZYSTKIE tagi
+        entries: usuń WSZYTSTKIE wpisy
+        archived: usuń WSZYSTKIE zarchiwizowane wpisy
+        confirm: Jesteś pewien? (tej operacji NIE MOŻNA cofnąć)
     form_password:
+        description: "Tutaj możesz zmienić swoje hasło. Twoje nowe hasło powinno mieć conajmniej 8 znaków."
         old_password_label: 'Stare hasło'
         new_password_label: 'Nowe hasło'
         repeat_new_password_label: 'Powtórz nowe hasło'
@@ -102,9 +130,9 @@ config:
         faq:
             title: 'FAQ'
             tagging_rules_definition_title: 'Co oznaczają « reguły tagowania » ?'
-            tagging_rules_definition_description: 'Istnieją reguły używane przez wallabag służące do automatycznego tagowania nowych wpisów.<br />Za każdym razem kiedy dodasz nowi wpis, zostaną użyte wszystkie skonfigurowane przez ciebie regułu. Dzięki temu unikniesz konieczności ręcznego ich klasyfikowania.'
+            tagging_rules_definition_description: 'Istnieją reguły używane przez wallabag służące do automatycznego tagowania nowych wpisów.<br />Za każdym razem kiedy dodasz nowy wpis, zostaną użyte wszystkie skonfigurowane przez ciebie reguły. Dzięki temu unikniesz konieczności ręcznego ich klasyfikowania.'
             how_to_use_them_title: 'Jak ich użyć?'
-            how_to_use_them_description: 'Załóżmy, że chcesz otagować nowe wpisy jako « <i>do szybkiego przeczytania</i> » jeżeli czas czytania wynosi mniej niż 3 minuty.<br />W tym przypadku ponienieneś umieścić « czasCzytania &lt;= 3 » w  polu <i>Reguła</i> i « <i><do szybkiego przeczytania/i> » w polu <i>Tagi</i>.<br />Wiele tagów może zostać dodanych jednocześnie rozdzielając je przecinkami: « <i>do szybkiego przeczytania, koniecznie przeczytać</i> »<br />Kompleksowe reguły mogą być napisane przy użyciu operatorów: jeżeli « <i>czasCzytania &gt;= 5 I nazwaDomeny = "github.com"</i> » wtedy otagój jako « <i>dłuższy tekst, github </i> »'
+            how_to_use_them_description: 'Załóżmy, że chcesz otagować nowe wpisy jako « <i>do szybkiego przeczytania</i> » jeżeli czas czytania wynosi mniej niż 3 minuty.<br />W tym przypadku ponienieneś umieścić « czasCzytania &lt;= 3 » w  polu <i>Reguła</i> i « <i><do szybkiego przeczytania/i> » w polu <i>Tagi</i>.<br />Wiele tagów może zostać dodanych jednocześnie rozdzielając je przecinkami: « <i>do szybkiego przeczytania, koniecznie przeczytać</i> »<br />Kompleksowe reguły mogą być napisane przy użyciu operatorów: jeżeli « <i>czasCzytania &gt;= 5 I nazwaDomeny = "github.com"</i> » wtedy otaguj jako « <i>dłuższy tekst, github </i> »'
             variables_available_title: 'Jakich zmiennych i operatorów mogę użyć przy pisaniu reguł?'
             variables_available_description: 'Następujące zmienne i operatory mogą być użyte przy tworzeniu reguł tagowania:'
             meaning: 'Znaczenie'
@@ -130,6 +158,7 @@ config:
                 or: 'Jedna reguła LUB inna'
                 and: 'Jedna reguła I inna'
                 matches: 'Sprawdź czy <i>temat</i> pasuje <i>szukaj</i> (duże lub małe litery).<br />Przykład: <code>tytuł zawiera "piłka nożna"</code>'
+                notmatches: 'Sprawdź czy <i>temat</i> nie zawiera <i>szukaj</i> (duże lub małe litery).<br />Przykład: <code>tytuł nie zawiera "piłka nożna"</code>'
 
 entry:
     page_titles:
@@ -138,15 +167,17 @@ entry:
         archived: 'Zarchiwizowane wpisy'
         filtered: 'Odfiltrowane wpisy'
         filtered_tags: 'Filtrowane po tagach:'
+        filtered_search: 'Filtrowanie po wyszukiwaniu:'
         untagged: 'Odtaguj wpisy'
+        all: 'Wszystkie przedmioty'
     list:
         number_on_the_page: '{0} Nie ma wpisów.|{1} Jest jeden wpis.|]1,Inf[ Są %count% wpisy.'
         reading_time: 'szacunkowy czas czytania'
         reading_time_minutes: 'szacunkowy czas czytania: %readingTime% min'
-        reading_time_less_one_minute: 'szacunkowy czas czytania: <small class="inferieur">&lt;</small> 1 min'
+        reading_time_less_one_minute: 'szacunkowy czas czytania: &lt; 1 min'
         number_of_tags: '{1} i inny tag|]1,Inf[i %count% innych tagów'
         reading_time_minutes_short: '%readingTime% min'
-        reading_time_less_one_minute_short: '<small class="inferieur">&lt;</small> 1 min'
+        reading_time_less_one_minute_short: '&lt; 1 min'
         original_article: 'oryginał'
         toogle_as_read: 'Oznacz jako przeczytane'
         toogle_as_star: 'Oznacz jako ulubione'
@@ -160,7 +191,10 @@ entry:
         unread_label: 'Nieprzeczytane'
         preview_picture_label: 'Posiada podgląd obrazu'
         preview_picture_help: 'Podgląd obrazu'
+        is_public_label: 'Posiada publiczny link'
+        is_public_help: 'Publiczny link'
         language_label: 'Język'
+        http_status_label: 'Status HTTP'
         reading_time:
             label: 'Czas czytania w minutach'
             from: 'od'
@@ -188,7 +222,7 @@ entry:
             share_email_label: 'Adres email'
             public_link: 'Publiczny link'
             delete_public_link: 'Usuń publiczny link'
-            download: 'Pobierz'
+            export: 'Export'
             print: 'Drukuj'
             problem:
                 label: 'Problemy'
@@ -197,19 +231,25 @@ entry:
         original_article: 'oryginalny'
         annotations_on_the_entry: '{0} Nie ma adnotacji |{1} Jedna adnotacja |]1,Inf[ %count% adnotacji'
         created_at: 'Czas stworzenia'
+        published_at: 'Data publikacji'
+        published_by: 'Opublikowane przez'
     new:
         page_title: 'Zapisz nowy wpis'
         placeholder: 'http://website.com'
         form_new:
             url_label: Url
+    search:
+        placeholder: 'Czego szukasz?'
     edit:
         page_title: 'Edytuj wpis'
         title_label: 'Tytuł'
         url_label: 'Adres URL'
-        is_public_label: 'Publiczny'
         save_label: 'Zapisz'
     public:
         shared_by_wallabag: "Ten artykuł został udostępniony przez <a href='%wallabag_instance%'>wallabag</a>"
+    confirm:
+        delete: "Czy jesteś pewien, że chcesz usunąć ten artykuł?"
+        delete_tag: "Czy jesteś pewien, że chcesz usunąć ten tag, z tego artykułu?"
 
 about:
     page_title: 'O nas'
@@ -229,7 +269,7 @@ about:
     getting_help:
         documentation: 'Dokumentacja'
         bug_reports: 'Raportuj błędy'
-        support: '<a href="https://support.wallabag.org">Na naszej stronie wsparcia technicznego</a> lub <a href="https://github.com/wallabag/wallabag/issues">na GitHubie</a>'
+        support: '<a href="https://github.com/wallabag/wallabag/issues">na GitHubie</a>'
     helping:
         description: 'wallabag jest darmowy i otwartoźródłowy. Możesz nam pomóc:'
         by_contributing: 'przez przyłączenie się do projektu:'
@@ -245,6 +285,9 @@ about:
 howto:
     page_title: 'Howto'
     page_description: 'Sposoby zapisania artykułu:'
+    tab_menu:
+        add_link: "Dodaj link"
+        shortcuts: "Użyj skrótów"
     top_menu:
         browser_addons: 'Wtyczki dla przeglądarki'
         mobile_apps: 'Aplikacje mobilne'
@@ -254,6 +297,7 @@ howto:
     browser_addons:
         firefox: 'Standardowe rozszerzenie dla Firefox'
         chrome: 'Rozszerzenie dla Chrome'
+        opera: 'Rozszerzenie dla Opera'
     mobile_apps:
         android:
             via_f_droid: 'w F-Droid'
@@ -262,6 +306,33 @@ howto:
         windows: 'w Microsoft Store'
     bookmarklet:
         description: 'Przeciągnij i upuść ten link na swój pasek zakładek'
+    shortcuts:
+        page_description: Tutaj znajdują się skróty dostępne w wallabag.
+        shortcut: Skrót
+        action: Akcja
+        all_pages_title: Skróty dostępne na wszystkich stronach
+        go_unread: Idź do nieprzeczytanych
+        go_starred: Idź do oznaczonych gwiazdką
+        go_archive: Idź do archiwum
+        go_all: Idź do wszystkich wpisów
+        go_tags: Idź do tagów
+        go_config: Idź do konfiguracji
+        go_import: Idź do importu
+        go_developers: Idź do deweloperów
+        go_howto: Idź do howto (tej strony!)
+        go_logout: Wyloguj
+        list_title: Skróty dostępne w spisie stron
+        search: Pokaż formularz wyszukiwania
+        article_title: Skróty dostępne w widoku artykułu
+        open_original: Otwórz oryginalny adres URL wpisu
+        toggle_favorite: Oznacz wpis gwiazdką
+        toggle_archive: Oznacz wpis jako przeczytany
+        delete: Usuń wpis
+        material_title: Skróty dostępne wyłącznie w motywie Material
+        add_link: Dodaj nowy link
+        hide_form: Ukryj obecny formularz (wyszukiwania lub nowego linku)
+        arrows_navigation: Nawiguj pomiędzy artykułami
+        open_article: Wyświetl zaznaczony wpis
 
 quickstart:
     page_title: 'Szybki start'
@@ -322,10 +393,16 @@ tag:
     list:
         number_on_the_page: '{0} Nie ma tagów.|{1} Jest jeden tag.|]1,Inf[ Są %count% tagi.'
         see_untagged_entries: 'Zobacz nieotagowane wpisy'
+    new:
+        add: 'Dodaj'
+        placeholder: 'Możesz dodać kilka tagów, oddzielając je przecinkami.'
+
+export:
+     footer_template: '<div style="text-align:center;"><p>Stworzone przez wallabag z %method%</p><p>Proszę zgłoś <a href="https://github.com/wallabag/wallabag/issues">sprawę</a>, jeżeli masz problem z wyświetleniem tego e-booka na swoim urządzeniu.</p></div>'
 
 import:
     page_title: 'Import'
-    page_description: 'Witaj w importerze Wallabag. Wybierz swoją poprzednią usługę, z której chcech migrować.'
+    page_description: 'Witaj w importerze Wallabag. Wybierz swoją poprzednią usługę, z której chcesz migrować.'
     action:
         import_contents: 'Import zawartości'
     form:
@@ -335,7 +412,7 @@ import:
         save_label: 'Właduj plik'
     pocket:
         page_title: 'Import > Pocket'
-        description: "Ten importer, zaimportuje dane z usługi Pocket. Pocket nie pozwala na nam na pobranie zawartości ze swojej usługi, więc kontent każdego arthykuł\u zostanie ponownie pobrany przez wallabag."
+        description: "Ten importer, zaimportuje dane z usługi Pocket. Pocket nie pozwala na nam na pobranie zawartości ze swojej usługi, więc kontent każdego artykułu zostanie ponownie pobrany przez wallabag."
         config_missing:
             description: "Import z Pocket nie jest skonfigurowany."
             admin_message: 'Musisz zdefiniować %keyurls%a pocket_consumer_key%keyurle%.'
@@ -355,6 +432,7 @@ import:
         how_to: 'Wybierz swój plik eksportu z Readability i kliknij poniższy przycisk, aby go załadować.'
     worker:
         enabled: "Import jest wykonywany asynchronicznie. Od momentu rozpoczęcia importu, zewnętrzna usługa może zajmować się na raz tylko jednym zadaniem. Bieżącą usługą jest:"
+        download_images_warning: "Włączyłeś pobieranie obrazów dla swoich artykułów. W połączeniu z klasycznym importem, może to zająć dużo czasu (lub zakończyć się niepowodzeniem).<strong>Zdecydowanie zalecamy</strong> włączenie asynchronicznego importu, w celu uniknięcia błędów."
     firefox:
        page_title: 'Import > Firefox'
        description: "Ten importer zaimportuje wszystkie twoje zakładki z Firefoksa. Idź do twoich zakładek (Ctrl+Shift+O), następnie w \"Import i kopie zapasowe\", wybierz \"Utwórz kopię zapasową...\". Uzyskasz plik .json."
@@ -367,9 +445,13 @@ import:
         page_title: 'Import > Instapaper'
         description: 'Ten importer, zaimportuje wszystkie twoje artykuły z Instapaper. W ustawieniach (https://www.instapaper.com/user), kliknij na "Download .CSV file"  w sekcji "Export". Otrzymasz plik CSV.'
         how_to: 'Wybierz swój plik eksportu z Instapaper i kliknij poniższy przycisk, aby go załadować.'
+    pinboard:
+        page_title: "Import > Pinboard"
+        description: 'Ten importer, zaimportuje wszystkie twoje artykuły z Pinboard. W ustawieniach kopii zapasowej (https://pinboard.in/settings/backup), kliknij na "JSON" w sekcji "Bookmarks". Otrzymasz plik "pinboard_export".'
+        how_to: 'Wybierz swój plik eksportu z Pinboard i kliknij poniższy przycisk, aby go załadować.'
 
 developer:
-    page_title: 'Deweloper'
+    page_title: 'Zarządzanie klientami API'
     welcome_message: 'Witaj w API wallabag'
     documentation: 'Dokumentacja'
     how_to_first_app: 'Jak stworzyć moją pierwszą aplikację'
@@ -390,7 +472,7 @@ developer:
         warn_message_2: "Jeżeli go usuniesz, aplikacje skonfigurowane z tym klientem nię będa w stanie autoryzować twojego wallabag."
         action: 'Usuń tego klienta'
     client:
-        page_title: 'Deweloper > Nowy klient'
+        page_title: 'Zarządzanie klientami API > Nowy klient'
         page_description: 'Tworzysz nowego klienta. Wypełnij poniższe pole w celu przekierowania URI twojej aplikacji.'
         form:
             name_label: 'Nazwa klienta'
@@ -398,7 +480,7 @@ developer:
             save_label: 'Stwórz nowego klienta'
         action_back: 'Cofnij'
     client_parameter:
-        page_title: 'Deweloper > Parametry klienta'
+        page_title: 'Zarządzanie klientami API > Parametry klienta'
         page_description: 'Tutaj znajdują się parametry klienta.'
         field_name: 'Nazwa klienta'
         field_id: 'Client ID'
@@ -406,7 +488,7 @@ developer:
         back: 'Cofnij'
         read_howto: 'Przeczytaj jak "Stworzyć moją pierwszą aplikację"'
     howto:
-        page_title: 'Deweloper > Jak stworzyć moją pierwszą aplikację'
+        page_title: 'Zarządzanie klientami API > Jak stworzyć moją pierwszą aplikację'
         description:
             paragraph_1: 'Następujące komendy korzystają <a href="https://github.com/jkbrzt/httpie">Biblioteka HTTPie</a>. Upewnij się, czy zainstalowałeś ją w swoim systemie zanim z niej skorzystasz'
             paragraph_2: 'Potrzebujesz tokena w celu nawiązania komunikacji między swoją aplikacją a API wallabag.'
@@ -437,29 +519,53 @@ user:
         plain_password_label: 'Jawne hasło'
         email_label: 'Adres email'
         enabled_label: 'Włączony'
-        locked_label: 'Zablokowany'
         last_login_label: 'Ostatnie logowanie'
         twofactor_label: Autoryzacja dwuetapowa
         save: Zapisz
         delete: Usuń
         delete_confirm: Jesteś pewien?
         back_to_list: Powrót do listy
+    search:
+        placeholder: Filtruj po nazwie użytkownika lub adresie e-mail
+
+site_credential:
+    page_title: Zarządzanie poświadczeniami strony
+    new_site_credential: Stwórz nowe poświadczenie
+    edit_site_credential: Edytuj istniejące poświadczenie
+    description: "Tutaj możesz zarządzać wszystkim poświadczeniami wymaganymi przez strony (stwórz, edytuj i usuń ), takie jak paywall, autentykacja, itp."
+    list:
+        actions: Akcje
+        edit_action: Edytuj
+        yes: Tak
+        no: Nie
+        create_new_one: Stwórz nowe poświadczenie
+    form:
+        username_label: 'Nazwa użytkownika'
+        host_label: 'Host'
+        password_label: 'Hasło'
+        save: Zapisz
+        delete: Usuń
+        delete_confirm: Jesteś pewien?
+        back_to_list: Powrót do listy
 
 error:
-    # page_title: An error occurred
+    page_title: Wystąpił błąd
 
 flashes:
     config:
         notice:
-            config_saved: 'Konfiguracja zapisana. Niektóre parametry zostaną uznane po rozłączeniu'
+            config_saved: 'Konfiguracja zapisana.'
             password_updated: 'Hasło zaktualizowane'
             password_not_updated_demo: "In demonstration mode, you can't change password for this user."
             user_updated: 'Informacje zaktualizowane'
             rss_updated: 'Informacje RSS zaktualizowane'
             tagging_rules_updated: 'Reguły tagowania zaktualizowane'
             tagging_rules_deleted: 'Reguła tagowania usunięta'
-            user_added: 'Użytkownik "%username%" dodany'
             rss_token_updated: 'Token kanału RSS zaktualizowany'
+            annotations_reset: Zresetuj adnotacje
+            tags_reset: Zresetuj tagi
+            entries_reset: Zresetuj wpisy
+            archived_reset: Zarchiwizowane wpisy usunięte
     entry:
         notice:
             entry_already_saved: 'Wpis już został dodany %date%'
@@ -489,3 +595,13 @@ flashes:
         notice:
             client_created: 'Nowy klient utworzony.'
             client_deleted: 'Klient usunięty'
+    user:
+        notice:
+            added: 'Użytkownik "%username%" dodany'
+            updated: 'Użytkownik "%username%" zaktualizowany'
+            deleted: 'Użytkownik "%username%" usunięty'
+    site_credential:
+        notice:
+            added: 'Poświadczenie dla "%host%" dodane'
+            updated: 'Poświadczenie dla "%host%" zaktualizowane'
+            deleted: 'Poświadczenie dla "%host%" usuniętę'

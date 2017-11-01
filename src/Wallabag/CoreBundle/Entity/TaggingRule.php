@@ -28,9 +28,10 @@ class TaggingRule
      * @var string
      *
      * @Assert\NotBlank()
+     * @Assert\Length(max=255)
      * @RulerZAssert\ValidRule(
      *  allowed_variables={"title", "url", "isArchived", "isStared", "content", "language", "mimetype", "readingTime", "domainName"},
-     *  allowed_operators={">", "<", ">=", "<=", "=", "is", "!=", "and", "not", "or", "matches"}
+     *  allowed_operators={">", "<", ">=", "<=", "=", "is", "!=", "and", "not", "or", "matches", "notmatches"}
      * )
      * @ORM\Column(name="rule", type="string", nullable=false)
      */
@@ -86,7 +87,7 @@ class TaggingRule
     /**
      * Set tags.
      *
-     * @param array<string> $tags
+     * @param array <string> $tags
      *
      * @return TaggingRule
      */

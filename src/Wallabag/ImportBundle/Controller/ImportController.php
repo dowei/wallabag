@@ -2,8 +2,8 @@
 
 namespace Wallabag\ImportBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class ImportController extends Controller
 {
@@ -42,6 +42,7 @@ class ImportController extends Controller
                     + $this->getTotalMessageInRabbitQueue('firefox')
                     + $this->getTotalMessageInRabbitQueue('chrome')
                     + $this->getTotalMessageInRabbitQueue('instapaper')
+                    + $this->getTotalMessageInRabbitQueue('pinboard')
                 ;
             } catch (\Exception $e) {
                 $rabbitNotInstalled = true;
@@ -57,6 +58,7 @@ class ImportController extends Controller
                     + $redis->llen('wallabag.import.firefox')
                     + $redis->llen('wallabag.import.chrome')
                     + $redis->llen('wallabag.import.instapaper')
+                    + $redis->llen('wallabag.import.pinboard')
                 ;
             } catch (\Exception $e) {
                 $redisNotInstalled = true;
@@ -84,9 +86,9 @@ class ImportController extends Controller
     private function getTotalMessageInRabbitQueue($importService)
     {
         $message = $this
-            ->get('old_sound_rabbit_mq.import_'.$importService.'_consumer')
+            ->get('old_sound_rabbit_mq.import_' . $importService . '_consumer')
             ->getChannel()
-            ->basic_get('wallabag.import.'.$importService);
+            ->basic_get('wallabag.import.' . $importService);
 
         if (null === $message) {
             return 0;

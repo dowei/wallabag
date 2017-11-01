@@ -4,6 +4,17 @@ namespace Wallabag\ImportBundle\Import;
 
 class WallabagV1Import extends WallabagImport
 {
+    protected $fetchingErrorMessage;
+    protected $fetchingErrorMessageTitle;
+
+    public function __construct($em, $contentProxy, $tagsAssigner, $eventDispatcher, $fetchingErrorMessageTitle, $fetchingErrorMessage)
+    {
+        $this->fetchingErrorMessageTitle = $fetchingErrorMessageTitle;
+        $this->fetchingErrorMessage = $fetchingErrorMessage;
+
+        parent::__construct($em, $contentProxy, $tagsAssigner, $eventDispatcher);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -37,21 +48,20 @@ class WallabagV1Import extends WallabagImport
             'title' => $entry['title'],
             'html' => $entry['content'],
             'url' => $entry['url'],
-            'content_type' => '',
-            'language' => '',
             'is_archived' => $entry['is_read'] || $this->markAsRead,
             'is_starred' => $entry['is_fav'],
             'tags' => '',
             'created_at' => '',
         ];
 
-        // force content to be refreshed in case on bad fetch in the v1 installation
-        if (in_array($entry['title'], $this->untitled)) {
-            $data['title'] = '';
-            $data['html'] = '';
+        // In case of a bad fetch in v1, replace title and content with v2 error strings
+        // If fetching fails again, they will get this instead of the v1 strings
+        if (in_array($entry['title'], $this->untitled, true)) {
+            $data['title'] = $this->fetchingErrorMessageTitle;
+            $data['html'] = $this->fetchingErrorMessage;
         }
 
-        if (array_key_exists('tags', $entry) && $entry['tags'] != '') {
+        if (array_key_exists('tags', $entry) && '' !== $entry['tags']) {
             $data['tags'] = $entry['tags'];
         }
 

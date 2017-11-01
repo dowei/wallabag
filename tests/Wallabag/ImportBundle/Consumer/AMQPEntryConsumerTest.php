@@ -2,10 +2,10 @@
 
 namespace Tests\Wallabag\ImportBundle\Consumer\AMQP;
 
-use Wallabag\ImportBundle\Consumer\AMQPEntryConsumer;
 use PhpAmqpLib\Message\AMQPMessage;
-use Wallabag\UserBundle\Entity\User;
 use Wallabag\CoreBundle\Entity\Entry;
+use Wallabag\ImportBundle\Consumer\AMQPEntryConsumer;
+use Wallabag\UserBundle\Entity\User;
 
 class AMQPEntryConsumerTest extends \PHPUnit_Framework_TestCase
 {
@@ -112,10 +112,19 @@ JSON;
             ->with(json_decode($body, true))
             ->willReturn($entry);
 
+        $dispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher
+            ->expects($this->once())
+            ->method('dispatch');
+
         $consumer = new AMQPEntryConsumer(
             $em,
             $userRepository,
-            $import
+            $import,
+            $dispatcher
         );
 
         $message = new AMQPMessage($body);
@@ -157,15 +166,26 @@ JSON;
             ->disableOriginalConstructor()
             ->getMock();
 
+        $dispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher
+            ->expects($this->never())
+            ->method('dispatch');
+
         $consumer = new AMQPEntryConsumer(
             $em,
             $userRepository,
-            $import
+            $import,
+            $dispatcher
         );
 
         $message = new AMQPMessage($body);
 
-        $consumer->execute($message);
+        $res = $consumer->execute($message);
+
+        $this->assertTrue($res);
     }
 
     public function testMessageWithEntryProcessed()
@@ -212,10 +232,19 @@ JSON;
             ->with(json_decode($body, true))
             ->willReturn(null);
 
+        $dispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher
+            ->expects($this->never())
+            ->method('dispatch');
+
         $consumer = new AMQPEntryConsumer(
             $em,
             $userRepository,
-            $import
+            $import,
+            $dispatcher
         );
 
         $message = new AMQPMessage($body);

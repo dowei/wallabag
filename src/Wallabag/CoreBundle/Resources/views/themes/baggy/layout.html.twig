@@ -2,19 +2,23 @@
 
 {% block css %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('bundles/wallabagcore/themes/baggy/css/style.min.css') }}"  media="screen,projection,print"/>
+    {% if not app.debug %}
+        <link rel="stylesheet" href="{{ asset('bundles/wallabagcore/baggy.css') }}">
+    {% endif %}
 {% endblock %}
 
 {% block scripts %}
     {{ parent() }}
-    <script src="{{ asset('bundles/wallabagcore/themes/baggy/js/baggy.min.js') }}"></script>
+    <script src="{{ asset('bundles/wallabagcore/baggy' ~ (app.debug ? '.dev' : '') ~ '.js') }}"></script>
 {% endblock %}
 
 {% block header %}
     <header class="w600p center mbm">
         <h1 class="logo">
             {% block logo %}
-                <img width="100" height="100" src="{{ asset('bundles/wallabagcore/themes/_global/img/logo-w.png') }}" alt="wallabag logo" />
+                <a title="{{ 'menu.left.back_to_unread'|trans }}" href="{{ path('unread') }}">
+                    <img width="100" height="100" src="{{ asset('bundles/wallabagcore/themes/_global/img/logo-w.png') }}" alt="wallabag logo" />
+                </a>
             {% endblock %}
         </h1>
     </header>
@@ -29,17 +33,14 @@
         <li class="menu all"><a href="{{ path('all') }}">{{ 'menu.left.all_articles'|trans }}</a></li>
         <li class="menu tag"><a href="{{ path('tag') }}">{{ 'menu.left.tags'|trans }}</a></li>
         <li class="menu new"><a href="{{ path('new') }}">{{ 'menu.left.save_link'|trans }}</a></li>
-        <!--<li style="position: relative;"><a href="javascript: void(null);" id="search">{{ 'menu.left.search'|trans }}</a>
+        <li style="position: relative;"><a href="javascript: void(null);" id="search">{{ 'menu.left.search'|trans }}</a>
             <div id="search-form" class="messages info popup-form">
-                <form method="get" action="index.php">
-                    <h2>{{ 'menu.left.search'|trans }}</h2>
-                    <a href="javascript: void(null);" id="search-form-close" class="close-button--popup close-button">&times;</a>
-                    <input type="hidden" name="view" value="search">
-                    <input required placeholder="{{ 'menu.search_form.input_label'|trans }}" type="text" name="search" id="searchfield"><br>
-                    <input id="submit-search" type="submit" value="{{ 'menu.left.search'|trans }}">
-                </form>
+                {{ render(controller("WallabagCoreBundle:Entry:searchForm", {'currentRoute': app.request.attributes.get('_route')})) }}
             </div>
-        </li>-->
+        </li>
+        {% if craue_setting('restricted_access') %}
+        <li class="menu site_credentials"><a href="{{ path('site_credentials_index') }}">{{ 'menu.left.site_credentials'|trans }}</a></li>
+        {% endif %}
         <li class="menu config"><a href="{{ path('config') }}">{{ 'menu.left.config'|trans }}</a></li>
         {% if is_granted('ROLE_SUPER_ADMIN') %}
             <li class="menu users"><a href="{{ path('user_index') }}">{{ 'menu.left.users_management'|trans }}</a></li>

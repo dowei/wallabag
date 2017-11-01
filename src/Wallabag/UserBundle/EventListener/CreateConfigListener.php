@@ -5,7 +5,6 @@ namespace Wallabag\UserBundle\EventListener;
 use Doctrine\ORM\EntityManager;
 use FOS\UserBundle\Event\UserEvent;
 use FOS\UserBundle\FOSUserEvents;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Wallabag\CoreBundle\Entity\Config;
 
@@ -21,8 +20,10 @@ class CreateConfigListener implements EventSubscriberInterface
     private $rssLimit;
     private $language;
     private $readingSpeed;
+    private $actionMarkAsRead;
+    private $listMode;
 
-    public function __construct(EntityManager $em, $theme, $itemsOnPage, $rssLimit, $language, $readingSpeed)
+    public function __construct(EntityManager $em, $theme, $itemsOnPage, $rssLimit, $language, $readingSpeed, $actionMarkAsRead, $listMode)
     {
         $this->em = $em;
         $this->theme = $theme;
@@ -30,6 +31,8 @@ class CreateConfigListener implements EventSubscriberInterface
         $this->rssLimit = $rssLimit;
         $this->language = $language;
         $this->readingSpeed = $readingSpeed;
+        $this->actionMarkAsRead = $actionMarkAsRead;
+        $this->listMode = $listMode;
     }
 
     public static function getSubscribedEvents()
@@ -43,7 +46,7 @@ class CreateConfigListener implements EventSubscriberInterface
         ];
     }
 
-    public function createConfig(UserEvent $event, $eventName = null, EventDispatcherInterface $eventDispatcher = null)
+    public function createConfig(UserEvent $event)
     {
         $config = new Config($event->getUser());
         $config->setTheme($this->theme);
@@ -51,6 +54,8 @@ class CreateConfigListener implements EventSubscriberInterface
         $config->setRssLimit($this->rssLimit);
         $config->setLanguage($this->language);
         $config->setReadingSpeed($this->readingSpeed);
+        $config->setActionMarkAsRead($this->actionMarkAsRead);
+        $config->setListMode($this->listMode);
 
         $this->em->persist($config);
         $this->em->flush();

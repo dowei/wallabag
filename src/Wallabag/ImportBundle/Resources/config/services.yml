@@ -20,6 +20,8 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
         calls:
             - [ setClient, [ "@wallabag_import.pocket.client" ] ]
             - [ setLogger, [ "@logger" ]]
@@ -31,6 +33,10 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
+            - "%wallabag_core.fetching_error_message_title%"
+            - "%wallabag_core.fetching_error_message%"
         calls:
             - [ setLogger, [ "@logger" ]]
         tags:
@@ -41,6 +47,8 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
         calls:
             - [ setLogger, [ "@logger" ]]
         tags:
@@ -51,6 +59,8 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
         calls:
             - [ setLogger, [ "@logger" ]]
         tags:
@@ -61,16 +71,32 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
         calls:
             - [ setLogger, [ "@logger" ]]
         tags:
             -  { name: wallabag_import.import, alias: instapaper }
+
+    wallabag_import.pinboard.import:
+        class: Wallabag\ImportBundle\Import\PinboardImport
+        arguments:
+            - "@doctrine.orm.entity_manager"
+            - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
+        calls:
+            - [ setLogger, [ "@logger" ]]
+        tags:
+            -  { name: wallabag_import.import, alias: pinboard }
 
     wallabag_import.firefox.import:
         class: Wallabag\ImportBundle\Import\FirefoxImport
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
         calls:
             - [ setLogger, [ "@logger" ]]
         tags:
@@ -80,6 +106,8 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@wallabag_core.content_proxy"
+            - "@wallabag_core.tags_assigner"
+            - "@event_dispatcher"
         calls:
             - [ setLogger, [ "@logger" ]]
         tags:

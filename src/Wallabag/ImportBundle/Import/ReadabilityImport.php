@@ -98,11 +98,10 @@ class ReadabilityImport extends AbstractImport
         $data = [
             'title' => $importedEntry['article__title'],
             'url' => $importedEntry['article__url'],
-            'content_type' => '',
-            'language' => '',
             'is_archived' => $importedEntry['archive'] || $this->markAsRead,
             'is_starred' => $importedEntry['favorite'],
             'created_at' => $importedEntry['date_added'],
+            'html' => false,
         ];
 
         $entry = new Entry($this->user);
@@ -110,7 +109,7 @@ class ReadabilityImport extends AbstractImport
         $entry->setTitle($data['title']);
 
         // update entry with content (in case fetching failed, the given entry will be return)
-        $entry = $this->fetchContent($entry, $data['url'], $data);
+        $this->fetchContent($entry, $data['url'], $data);
 
         $entry->setArchived($data['is_archived']);
         $entry->setStarred($data['is_starred']);

@@ -3,28 +3,14 @@
 namespace Wallabag\AnnotationBundle\Repository;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use Wallabag\AnnotationBundle\Entity\Annotation;
 
 /**
  * AnnotationRepository.
  */
 class AnnotationRepository extends EntityRepository
 {
-    /**
-     * Return a query builder to used by other getBuilderFor* method.
-     *
-     * @param int $userId
-     *
-     * @return QueryBuilder
-     */
-    private function getBuilderByUser($userId)
-    {
-        return $this->createQueryBuilder('a')
-            ->leftJoin('a.user', 'u')
-            ->andWhere('u.id = :userId')->setParameter('userId', $userId)
-            ->orderBy('a.id', 'desc')
-        ;
-    }
-
     /**
      * Retrieves all annotations for a user.
      *
@@ -50,7 +36,8 @@ class AnnotationRepository extends EntityRepository
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.id = :annotationId')->setParameter('annotationId', $annotationId)
-            ->getQuery()->getSingleResult()
+            ->getQuery()
+            ->getSingleResult()
         ;
     }
 
@@ -67,7 +54,8 @@ class AnnotationRepository extends EntityRepository
         return $this->createQueryBuilder('a')
             ->where('a.entry = :entryId')->setParameter('entryId', $entryId)
             ->andwhere('a.user = :userId')->setParameter('userId', $userId)
-            ->getQuery()->getResult()
+            ->getQuery()
+            ->getResult()
         ;
     }
 
@@ -105,5 +93,52 @@ class AnnotationRepository extends EntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getSingleResult();
+    }
+
+    /**
+     * Remove all annotations for a user id.
+     * Used when a user want to reset all informations.
+     *
+     * @param int $userId
+     */
+    public function removeAllByUserId($userId)
+    {
+        $this->getEntityManager()
+            ->createQuery('DELETE FROM Wallabag\AnnotationBundle\Entity\Annotation a WHERE a.user = :userId')
+            ->setParameter('userId', $userId)
+            ->execute();
+    }
+
+    /**
+     * Find all annotations related to archived entries.
+     *
+     * @param $userId
+     *
+     * @return mixed
+     */
+    public function findAllArchivedEntriesByUser($userId)
+    {
+        return $this->createQueryBuilder('a')
+            ->leftJoin('a.entry', 'e')
+            ->where('a.user = :userid')->setParameter(':userid', $userId)
+            ->andWhere('e.isArchived = true')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Return a query builder to used by other getBuilderFor* method.
+     *
+     * @param int $userId
+     *
+     * @return QueryBuilder
+     */
+    private function getBuilderByUser($userId)
+    {
+        return $this->createQueryBuilder('a')
+            ->leftJoin('a.user', 'u')
+            ->andWhere('u.id = :userId')->setParameter('userId', $userId)
+            ->orderBy('a.id', 'desc')
+        ;
     }
 }

@@ -4,36 +4,43 @@ namespace Wallabag\UserBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use FOS\UserBundle\Model\User as BaseUser;
+use JMS\Serializer\Annotation\Accessor;
+use JMS\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\XmlRoot;
 use Scheb\TwoFactorBundle\Model\Email\TwoFactorInterface;
 use Scheb\TwoFactorBundle\Model\TrustedComputerInterface;
-use FOS\UserBundle\Model\User as BaseUser;
-use JMS\Serializer\Annotation\ExclusionPolicy;
-use JMS\Serializer\Annotation\Expose;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Wallabag\ApiBundle\Entity\Client;
 use Wallabag\CoreBundle\Entity\Config;
 use Wallabag\CoreBundle\Entity\Entry;
+use Wallabag\CoreBundle\Helper\EntityTimestampsTrait;
 
 /**
  * User.
  *
+ * @XmlRoot("user")
  * @ORM\Entity(repositoryClass="Wallabag\UserBundle\Repository\UserRepository")
  * @ORM\Table(name="`user`")
  * @ORM\HasLifecycleCallbacks()
- * @ExclusionPolicy("all")
  *
  * @UniqueEntity("email")
  * @UniqueEntity("username")
  */
 class User extends BaseUser implements TwoFactorInterface, TrustedComputerInterface
 {
+    use EntityTimestampsTrait;
+
+    /** @Serializer\XmlAttribute */
     /**
      * @var int
      *
-     * @Expose
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
+     * @Groups({"user_api", "user_api_with_client"})
      */
     protected $id;
 
@@ -41,20 +48,40 @@ class User extends BaseUser implements TwoFactorInterface, TrustedComputerInterf
      * @var string
      *
      * @ORM\Column(name="name", type="text", nullable=true)
+     *
+     * @Groups({"user_api", "user_api_with_client"})
      */
     protected $name;
 
     /**
-     * @var date
+     * @var string
+     *
+     * @Groups({"user_api", "user_api_with_client"})
+     */
+    protected $username;
+
+    /**
+     * @var string
+     *
+     * @Groups({"user_api", "user_api_with_client"})
+     */
+    protected $email;
+
+    /**
+     * @var \DateTime
      *
      * @ORM\Column(name="created_at", type="datetime")
+     *
+     * @Groups({"user_api", "user_api_with_client"})
      */
     protected $createdAt;
 
     /**
-     * @var date
+     * @var \DateTime
      *
      * @ORM\Column(name="updated_at", type="datetime")
+     *
+     * @Groups({"user_api", "user_api_with_client"})
      */
     protected $updatedAt;
 
@@ -69,12 +96,35 @@ class User extends BaseUser implements TwoFactorInterface, TrustedComputerInterf
     protected $config;
 
     /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="Wallabag\CoreBundle\Entity\SiteCredential", mappedBy="user", cascade={"remove"})
+     */
+    protected $siteCredentials;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="Wallabag\ApiBundle\Entity\Client", mappedBy="user", cascade={"remove"})
+     */
+    protected $clients;
+
+    /**
+     * @see getFirstClient() below
+     *
+     * @Groups({"user_api_with_client"})
+     * @Accessor(getter="getFirstClient")
+     */
+    protected $default_client;
+
+    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $authCode;
 
     /**
-     * @var bool Enabled yes/no
+     * @var bool
+     *
      * @ORM\Column(type="boolean")
      */
     private $twoFactorAuthentication = false;
@@ -89,19 +139,6 @@ class User extends BaseUser implements TwoFactorInterface, TrustedComputerInterf
         parent::__construct();
         $this->entries = new ArrayCollection();
         $this->roles = ['ROLE_USER'];
-    }
-
-    /**
-     * @ORM\PrePersist
-     * @ORM\PreUpdate
-     */
-    public function timestamps()
-    {
-        if (is_null($this->createdAt)) {
-            $this->createdAt = new \DateTime();
-        }
-
-        $this->updatedAt = new \DateTime();
     }
 
     /**
@@ -129,7 +166,7 @@ class User extends BaseUser implements TwoFactorInterface, TrustedComputerInterf
     }
 
     /**
-     * @return string
+     * @return \DateTime
      */
     public function getCreatedAt()
     {
@@ -137,7 +174,7 @@ class User extends BaseUser implements TwoFactorInterface, TrustedComputerInterf
     }
 
     /**
-     * @return string
+     * @return \DateTime
      */
     public function getUpdatedAt()
     {
@@ -239,5 +276,37 @@ class User extends BaseUser implements TwoFactorInterface, TrustedComputerInterf
         }
 
         return false;
+    }
+
+    /**
+     * @param Client $client
+     *
+     * @return User
+     */
+    public function addClient(Client $client)
+    {
+        $this->clients[] = $client;
+
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection<Entry>
+     */
+    public function getClients()
+    {
+        return $this->clients;
+    }
+
+    /**
+     * Only used by the API when creating a new user it'll also return the first client (which was also created at the same time).
+     *
+     * @return Client
+     */
+    public function getFirstClient()
+    {
+        if (!empty($this->clients)) {
+            return $this->clients->first();
+        }
     }
 }

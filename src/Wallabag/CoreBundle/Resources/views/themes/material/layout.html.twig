@@ -2,12 +2,14 @@
 
 {% block css %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('bundles/wallabagcore/themes/material/css/style.min.css') }}"  media="screen,projection,print"/>
+    {% if not app.debug %}
+        <link rel="stylesheet" href="{{ asset('bundles/wallabagcore/material.css') }}">
+    {% endif %}
 {% endblock %}
 
 {% block scripts %}
     {{ parent() }}
-    <script src="{{ asset('bundles/wallabagcore/themes/material/js/material.min.js') }}"></script>
+    <script src="{{ asset('bundles/wallabagcore/material' ~ (app.debug ? '.dev' : '') ~ '.js') }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -19,8 +21,6 @@
             Materialize.toast('{{ flashMessage|trans }}', 4000);
         </script>
     {% endfor %}
-
-    {{ render(controller("WallabagImportBundle:Import:checkQueue")) }}
 {% endblock %}
 
 {% block menu %}
@@ -35,17 +35,29 @@
             {% endblock %}
 
             {% set currentRoute = app.request.attributes.get('_route') %}
+            {% set currentRouteFromQueryParams = app.request.query.get('currentRoute') %}
 
-            <li class="bold {% if currentRoute == 'unread' or currentRoute == 'homepage' %}active{% endif %}">
+            {% set activeRoute = null %}
+            {% if currentRoute == 'all' or currentRouteFromQueryParams == 'all' %}
+               {% set activeRoute = 'all' %}
+            {% elseif currentRoute == 'archive' or currentRouteFromQueryParams == 'archive' %}
+               {% set activeRoute = 'archive' %}
+            {% elseif currentRoute == 'starred' or currentRouteFromQueryParams == 'starred' %}
+               {% set activeRoute = 'starred' %}
+            {% elseif currentRoute == 'unread' or currentRoute == 'homepage' or currentRouteFromQueryParams == 'unread' %}
+               {% set activeRoute = 'unread' %}
+            {% endif %}
+
+            <li class="bold {% if activeRoute == 'unread' %}active{% endif %}">
                 <a class="waves-effect" href="{{ path('unread') }}">{{ 'menu.left.unread'|trans }} <span class="numberItems grey-text">{{ count_entries('unread') }}</span></a>
             </li>
-            <li class="bold {% if currentRoute == 'starred' %}active{% endif %}">
+            <li class="bold {% if activeRoute == 'starred' %}active{% endif %}">
                 <a class="waves-effect" href="{{ path('starred') }}">{{ 'menu.left.starred'|trans }} <span class="numberItems grey-text">{{ count_entries('starred') }}</span></a>
             </li>
-            <li class="bold {% if currentRoute == 'archive' %}active{% endif %}">
+            <li class="bold {% if activeRoute == 'archive' %}active{% endif %}">
                 <a class="waves-effect" href="{{ path('archive') }}">{{ 'menu.left.archive'|trans }} <span class="numberItems grey-text">{{ count_entries('archive') }}</span></a>
             </li>
-            <li class="bold {% if currentRoute == 'all' %}active{% endif %}">
+            <li class="bold {% if activeRoute == 'all' %}active{% endif %}">
                 <a class="waves-effect" href="{{ path('all') }}">{{ 'menu.left.all_articles'|trans }} <span class="numberItems grey-text">{{ count_entries('all') }}</span></a>
             </li>
             <li class="bold border-bottom {% if currentRoute == 'tags' %}active{% endif %}">
@@ -54,6 +66,11 @@
             <li class="bold {% if currentRoute == 'config' %}active{% endif %}">
                 <a class="waves-effect" href="{{ path('config') }}">{{ 'menu.left.config'|trans }}</a>
             </li>
+            {% if craue_setting('restricted_access') %}
+            <li class="bold {% if currentRoute starts with 'site_credentials_' %}active{% endif %}">
+                <a class="waves-effect" href="{{ path('site_credentials_index') }}">{{ 'menu.left.site_credentials'|trans }}</a>
+            </li>
+            {% endif %}
             {% if is_granted('ROLE_SUPER_ADMIN') %}
                 <li class="bold {% if currentRoute starts with 'user_' %}active{% endif %}">
                     <a class="waves-effect" href="{{ path('user_index') }}">{{ 'menu.left.users_management'|trans }}</a>
@@ -82,40 +99,36 @@
                 {% block title %}
                 {% endblock %}
             </div>
-            <div class="input-field nav-panel-buttom">
-                <ul>
-                    <li class="bold">
-                        <a title="{{ 'menu.top.add_new_entry'|trans }}" class="waves-effect" href="{{ path('new') }}" id="nav-btn-add">
-                            <i class="material-icons">add</i>
-                        </a>
-                    </li>
-                    <!--<li>
-                        <a title="{{ 'menu.top.search'|trans }}" class="waves-effect" href="javascript: void(null);" id="nav-btn-search">
-                            <i class="material-icons">search</i>
-                        </a>
-                    </li>-->
-                    <li id="button_filters">
-                        <a title="{{ 'menu.top.filter_entries'|trans }}" href="#" data-activates="filters" class="nav-panel-menu button-collapse-right">
-                            <i class="material-icons">filter_list</i>
-                        </a>
-                    </li>
-                    <li id="button_export">
-                        <a title="{{ 'menu.top.export'|trans }}" class="nav-panel-menu button-collapse-right" href="#" data-activates="export">
-                            <i class="material-icons">file_download</i>
-                        </a>
-                    </li>
-                </ul>
+            <ul class="input-field nav-panel-buttom">
+                <li class="bold">
+                    <a class="waves-effect tooltipped" data-position="bottom" data-delay="50" data-tooltip="{{ 'menu.top.add_new_entry'|trans }}" href="{{ path('new') }}" id="nav-btn-add">
+                        <i class="material-icons">add</i>
+                    </a>
+                </li>
+                <li>
+                    <a class="waves-effect tooltipped" data-position="bottom" data-delay="50" data-tooltip="{{ 'menu.top.search'|trans }}" href="javascript: void(null);" id="nav-btn-search">
+                        <i class="material-icons">search</i>
+                    </a>
+                </li>
+                <li id="button_filters">
+                    <a class="nav-panel-menu button-collapse-right tooltipped js-filters-action" data-position="bottom" data-delay="50" data-tooltip="{{ 'menu.top.filter_entries'|trans }}" href="#" data-activates="filters">
+                        <i class="material-icons">filter_list</i>
+                    </a>
+                </li>
+                <li id="button_export">
+                    <a class="nav-panel-menu button-collapse-right tooltipped js-export-action" data-position="bottom" data-delay="50" data-tooltip="{{ 'menu.top.export'|trans }}" href="#" data-activates="export">
+                        <i class="material-icons">file_download</i>
+                    </a>
+                </li>
+            </ul>
+            <div class="input-field nav-panel-search" style="display: none">
+                {{ render(controller("WallabagCoreBundle:Entry:searchForm", {'currentRoute': app.request.attributes.get('_route')})) }}
+                <label for="search"><i class="material-icons search">search</i></label>
+                <i class="material-icons close">clear</i>
             </div>
-            <form method="get" action="index.php">
-                <div class="input-field nav-panel-search" style="display: none">
-                    <input name="search" id="searchfield" type="search" required placeholder="{{ 'menu.search_form.input_label'|trans }}">
-                    <label for="search"><i class="material-icons search">search</i></label>
-                    <i class="material-icons close">clear</i>
-                </div>
-            </form>
             <div class="input-field nav-panel-add" style="display: none">
                 {{ render(controller("WallabagCoreBundle:Entry:addEntryForm")) }}
-                <label for="add" class="active"><i class="material-icons add">add</i></label>
+                <label for="add"><i class="material-icons add">add</i></label>
                 <i class="material-icons close">clear</i>
             </div>
         </div>
@@ -127,12 +140,12 @@
         <div class="footer-copyright">
             <div class="container">
                 <div class="row">
-                    <div class="col s8">
-                        <p>
+                    <div class="col m12 l8 hide-on-small-only">
+                        <p title="{{ display_stats() | raw | striptags }}">
                             {{ display_stats() }}
                         </p>
                     </div>
-                    <div class="col s4">
+                    <div class="col s12 l4">
                         <p>
                             {{ 'footer.wallabag.powered_by'|trans }} <a target="_blank" href="https://wallabag.org" class="grey-text text-lighten-4">wallabag</a> –
                             <a class="grey-text text-lighten-4" href="{{ path('about') }}">{{ 'footer.wallabag.about'|trans|lower }}</a>
